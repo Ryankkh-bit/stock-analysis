@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레인보우로보틱스(277810) - FnGuide 기업분석</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
+      --surface: #1e2746; --surface2: #253256; --surface3: #2a3a66;
+      --border: #2d3f6e; --border-light: #3a5199;
+      --text: #e8eaf6; --text2: #9ba4c4; --text3: #6b7aa1;
+      --accent: #4fc3f7; --accent2: #29b6f6; --accent-dark: #0288d1;
+      --positive: #66bb6a; --negative: #ef5350; --warning: #ffa726;
+      --header-bg: #0d1b3e; --row-hover: rgba(79,195,247,0.06);
+      --row-stripe: rgba(255,255,255,0.02);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .page-wrap { max-width: 1600px; margin: 0 auto; padding: 12px; }
+    .fn-header { background: linear-gradient(135deg, var(--header-bg), var(--bg2)); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .fn-header-left { flex: 1; }
+    .fn-company-name { font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .fn-company-name .code { font-size: 13px; color: var(--accent); font-weight: 400; }
+    .fn-company-name .badge { font-size: 11px; padding: 2px 8px; border-radius: 3px; background: var(--accent-dark); color: #fff; font-weight: 500; }
+    .fn-company-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .fn-company-sub span { margin-right: 12px; }
+    .fn-header-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; min-width: 420px; }
+    .fn-kpi { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 5px; padding: 10px 14px; text-align: center; }
+    .fn-kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .fn-kpi-value { font-size: 18px; font-weight: 700; color: #fff; }
+    .fn-kpi-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+    .fn-price-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .fn-price { font-size: 28px; font-weight: 700; }
+    .fn-price-change { font-size: 15px; font-weight: 600; }
+    .fn-price-change.down { color: var(--negative); }
+    .fn-price-change.up { color: var(--positive); }
+    .fn-price-meta { display: flex; gap: 20px; font-size: 12px; color: var(--text2); }
+    .fn-price-meta span strong { color: var(--text); }
+    .fn-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+    .fn-section-header { background: var(--header-bg); padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .fn-section-body { padding: 16px; }
+    .fn-charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+    .fn-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .fn-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
+    .fn-chart-body { padding: 10px; }
+    .fn-chart-container { position: relative; width: 100%; height: 380px; }
+    .fn-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .fn-table th { background: var(--header-bg); color: var(--text2); padding: 7px 10px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; white-space: nowrap; }
+    .fn-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .fn-table td:first-child { text-align: left; font-weight: 500; color: var(--text2); }
+    .fn-table tr:hover td { background: var(--row-hover); }
+    .fn-table tr:nth-child(even) td { background: var(--row-stripe); }
+    .fn-table .neg { color: var(--negative); }
+    .fn-table .pos { color: var(--positive); }
+    .fn-fin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .fn-fin-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .fn-fin-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
+    .fn-fin-chart-body { padding: 10px; }
+    .fn-fin-chart-container { position: relative; width: 100%; height: 260px; }
+    .fn-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .fn-inline-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .fn-inline-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .fn-inline-table td:first-child { color: var(--text2); width: 45%; }
+    .fn-inline-table td:last-child { text-align: right; font-weight: 500; }
+    .fn-holder-bar { display: flex; height: 18px; border-radius: 3px; overflow: hidden; margin: 8px 0; font-size: 0; }
+    .fn-holder-bar > div { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 500; }
+    .fn-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 10px; }
+    .fn-table-scroll { overflow-x: auto; }
+    .fn-table-scroll .fn-table th:first-child, .fn-table-scroll .fn-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+    .fn-table-scroll .fn-table th:first-child { background: var(--header-bg); }
+    @media (max-width: 1200px) {
+      .fn-charts-row { grid-template-columns: 1fr; }
+      .fn-chart-container { height: 300px; }
+      .fn-header { flex-direction: column; gap: 12px; }
+      .fn-header-kpis { min-width: unset; }
+      .fn-two-col { grid-template-columns: 1fr; }
+      .fn-fin-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="fn-header">
+    <div class="fn-header-left">
+      <div class="fn-company-name">
+        레인보우로보틱스
+        <span class="code">A277810</span>
+        <span class="badge">KOSDAQ</span>
+      </div>
+      <div class="fn-company-sub">
+        <span>업종: 기계·장비</span>
+        <span>결산: 12월</span>
+        <span>설립: 2011년</span>
+        <span><a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A277810" target="_blank">FnGuide 원본</a></span>
+      </div>
+    </div>
+    <div class="fn-header-kpis">
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">PER</div>
+        <div class="fn-kpi-value" >457.07</div>
+        <div class="fn-kpi-sub">기계·장비</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">업종 PER</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
+        <div class="fn-kpi-sub">기계·장비</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">PBR</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
+        <div class="fn-kpi-sub">순자산 대비</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">ROE</div>
+        <div class="fn-kpi-value" style="color:var(--positive);">1.07%</div>
+        <div class="fn-kpi-sub">최근 연간</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">EV/EBITDA</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
+        <div class="fn-kpi-sub">기업가치</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">배당수익률</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
+        <div class="fn-kpi-sub">무배당</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE BAR -->
+  <div class="fn-price-bar">
+    <div class="fn-price">542,000</div>
+    <div class="fn-price-change up">▲ 2,000 (+0.37%)</div>
+    <div class="fn-price-meta">
+      <span>거래량 <strong>61,478</strong></span>
+      <span>거래대금 <strong>333억</strong></span>
+      <span>시가총액 <strong>105,341억</strong></span>
+      <span>52주 <strong style="color:var(--positive);">934,000</strong> / <strong style="color:var(--negative);">236,000</strong></span>
+      <span>Beta <strong>2.14</strong></span>
+    </div>
+  </div>
+
+  <!-- 3 CHARTS -->
+  <div class="fn-charts-row">
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">주가추이 · 이동평균선 (5/20/60/120일)</div>
+      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="priceChart"></canvas></div></div>
+    </div>
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">거래량</div>
+      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="volumeChart"></canvas></div></div>
+    </div>
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">시가총액 추이</div>
+      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="mktCapChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- MARKET DATA -->
+  <div class="fn-two-col">
+    <div class="fn-section">
+      <div class="fn-section-header">시세현황 (2026/04/06)</div>
+      <div class="fn-section-body">
+        <table class="fn-inline-table">
+          <tr><td>종가</td><td>542,000원</td></tr>
+          <tr><td>전일대비</td><td style="color:var(--positive);">+2,000 (+0.37%)</td></tr>
+          <tr><td>거래량 / 거래대금</td><td>61,478주 / 333억</td></tr>
+          <tr><td>52주 최고 / 최저</td><td><span style="color:var(--positive);">934,000</span> / <span style="color:var(--negative);">236,000</span></td></tr>
+          <tr><td>발행주식수</td><td>19,399,858주</td></tr>
+          <tr><td>시가총액</td><td>105,341억</td></tr>
+          <tr><td>Beta</td><td>2.14</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="fn-section">
+      <div class="fn-section-header">투자지표</div>
+      <div class="fn-section-body">
+        <table class="fn-inline-table">
+          <tr><td>PER</td><td>457.07</td></tr>
+          <tr><td>PBR</td><td>N/A</td></tr>
+          <tr><td>ROE</td><td>1.07%</td></tr>
+          <tr><td>EV/EBITDA</td><td>N/A</td></tr>
+          <tr><td>배당수익률</td><td>-</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="fn-footer">
+    기준일: 2026.04.07 | 데이터 출처: FnGuide, yfinance | 본 자료는 정보 제공 목적이며 투자 조언이 아닙니다.
+  </div>
+
+</div>
+
+<!-- CHARTS JS -->
+<script>
+  var txtC = '#9ba4c4';
+  var gridC = 'rgba(255,255,255,0.04)';
+
+  var pDates = ['04/11','04/18','04/25','05/02','05/09','05/16','05/23','05/30',
+    '06/06','06/13','06/20','06/27','07/04','07/11','07/18','07/25',
+    '08/01','08/08','08/15','08/22','08/29','09/05','09/12','09/19',
+    '09/26','10/03','10/10','10/17','10/24','10/31','11/07','11/14',
+    '11/21','11/28','12/05','12/12','12/19','12/26','2026 01/02','01/09',
+    '01/16','01/23','01/30','02/06','02/13','02/20','02/27','03/06',
+    '03/13','03/20','03/27','04/03','04/10'];
+  var pClose = [277000,279500,285500,272500,272000,296500,265000,264500,
+    287500,277000,290000,284000,268000,269000,274000,267000,
+    260000,278500,272500,263000,273500,276500,294500,310000,
+    314000,307500,329500,331500,339000,436500,404500,378500,
+    365500,435000,438500,479000,450500,473500,493500,445000,
+    493000,539000,728000,658000,670000,712000,860000,832000,
+    751000,659000,567000,540000,542000];
+  var pMA5 = [253100,280300,284900,277300,275700,292200,268900,267300,
+    275300,283200,276400,297000,275600,266600,272800,269400,
+    270900,273100,274300,259500,283000,275000,285300,296000,
+    309700,310200,313300,340900,340700,363700,452200,395600,
+    379000,383900,445100,465000,454100,476200,479100,458900,
+    473700,518600,702400,718800,674200,689200,790400,814600,
+    752800,711600,585200,540600,541400];
+  var pMA20 = [275400,268350,271200,272925,277025,282750,280025,276025,
+    276950,276850,275425,282975,283050,278900,278000,271100,
+    269925,271550,271700,268875,271550,272950,275700,284825,
+    291500,298425,301075,314975,326150,339650,374375,388050,
+    397625,402675,400900,418250,437025,459325,466050,467775,
+    468250,482575,538400,603375,653500,673050,726500,742400,
+    752150,759950,716050,647550,637700];
+  var pMA60 = [314733,317425,320042,316392,310950,302758,291542,282925,
+    280333,277850,275175,277133,277892,279017,278392,277100,
+    276642,275767,274983,274317,275300,274442,275400,275217,
+    277792,280717,281700,287458,293283,300900,316133,326242,
+    336200,344608,358783,373758,386933,398533,406925,418075,
+    428942,443900,467208,492358,516400,527317,562350,586742,
+    611358,631750,641483,646708,648075];
+  var pMA120 = [229908,236036,242699,247805,251655,258453,263878,268988,
+    272357,278738,284758,291513,295562,296875,297908,298571,
+    295738,290958,286496,280946,278096,276483,275279,276038,
+    277825,279838,280425,282971,285346,288946,296212,300612,
+    305258,309954,316612,324579,331075,337846,343117,351096,
+    359388,369846,387875,406304,423217,430904,452133,469804,
+    489512,507017,518725,528225,530179];
+  var vData = [912590,661275,483127,354602,251920,1457592,710971,368883,
+    486090,791072,1039378,1619409,605174,421724,587330,328264,
+    749974,503675,281368,359646,1370319,375871,782337,1253564,
+    2210261,558132,422164,1588425,928804,2873072,3833220,892597,
+    947235,1108660,2025018,1175665,943322,1615266,509942,1361858,
+    1965233,2229321,4368715,1504733,647727,403594,1368757,1506039,
+    1111645,992211,976074,633033,61478];
+
+  // Estimate market cap per week (close * shares)
+  var shares = 19399858;
+  var mCapData = pClose.map(function(c) { return Math.round(c * shares / 1e8); });
+
+  function buildCharts() {
+    if (typeof Chart === 'undefined') return;
+
+    new Chart(document.getElementById('priceChart'), {
+      type: 'line',
+      data: {
+        labels: pDates,
+        datasets: [
+          { label: '종가', data: pClose, borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.06)', fill: true, tension: 0.3, pointRadius: 1.5, borderWidth: 2.2, order: 0 },
+          { label: 'MA5', data: pMA5, borderColor: '#ffa726', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 1 },
+          { label: 'MA20', data: pMA20, borderColor: '#66bb6a', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 2 },
+          { label: 'MA60', data: pMA60, borderColor: '#ef5350', borderWidth: 1.5, borderDash: [5,3], pointRadius: 0, tension: 0.3, fill: false, order: 3 },
+          { label: 'MA120', data: pMA120, borderColor: '#ab47bc', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, tension: 0.3, fill: false, order: 4 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, pointStyle: 'line', padding: 8 }, position: 'top' },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString() + '원' : '-'); } } }
+        },
+        scales: {
+          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/10000).toFixed(0)+'만' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
+          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('volumeChart'), {
+      type: 'bar',
+      data: {
+        labels: pDates,
+        datasets: [{
+          label: '거래량',
+          data: vData,
+          backgroundColor: vData.map(function(v,i) {
+            return pClose[i] >= (pClose[i-1] || pClose[i]) ? 'rgba(102,187,106,0.5)' : 'rgba(239,83,80,0.5)';
+          }),
+          borderRadius: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
+        scales: {
+          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(0)+'M' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
+          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('mktCapChart'), {
+      type: 'line',
+      data: {
+        labels: pDates,
+        datasets: [{
+          label: '시가총액(억원)',
+          data: mCapData,
+          borderColor: '#ffa726',
+          backgroundColor: 'rgba(255,167,38,0.06)',
+          fill: true, tension: 0.35, pointRadius: 1.5, borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
+        scales: {
+          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 10000 ? (v/10000).toFixed(1)+'조' : v.toLocaleString()+'억'; } }, grid: { color: gridC }, border: { color: 'transparent' } },
+          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+  }
+
+  window.addEventListener('load', buildCharts);
+</script>
+</body>
+</html>

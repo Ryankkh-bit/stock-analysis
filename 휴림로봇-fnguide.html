@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>휴림로봇(090710) - FnGuide 기업분석</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
+      --surface: #1e2746; --surface2: #253256; --surface3: #2a3a66;
+      --border: #2d3f6e; --border-light: #3a5199;
+      --text: #e8eaf6; --text2: #9ba4c4; --text3: #6b7aa1;
+      --accent: #4fc3f7; --accent2: #29b6f6; --accent-dark: #0288d1;
+      --positive: #66bb6a; --negative: #ef5350; --warning: #ffa726;
+      --header-bg: #0d1b3e; --row-hover: rgba(79,195,247,0.06);
+      --row-stripe: rgba(255,255,255,0.02);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 13px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* === LAYOUT === */
+    .page-wrap { max-width: 1600px; margin: 0 auto; padding: 12px; }
+
+    /* === HEADER === */
+    .fn-header {
+      background: linear-gradient(135deg, var(--header-bg), var(--bg2));
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 16px 20px; margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .fn-header-left { flex: 1; }
+    .fn-company-name {
+      font-size: 24px; font-weight: 700; color: #fff;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .fn-company-name .code { font-size: 13px; color: var(--accent); font-weight: 400; }
+    .fn-company-name .badge {
+      font-size: 11px; padding: 2px 8px; border-radius: 3px;
+      background: var(--accent-dark); color: #fff; font-weight: 500;
+    }
+    .fn-company-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .fn-company-sub span { margin-right: 12px; }
+
+    /* 1) 상단 우측 핵심지표 - ROE, PBR 추가 */
+    .fn-header-kpis {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+      min-width: 420px;
+    }
+    .fn-kpi {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 5px; padding: 10px 14px; text-align: center;
+    }
+    .fn-kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .fn-kpi-value { font-size: 18px; font-weight: 700; color: #fff; }
+    .fn-kpi-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+    /* === PRICE BAR === */
+    .fn-price-bar {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 20px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .fn-price { font-size: 28px; font-weight: 700; }
+    .fn-price-change { font-size: 15px; font-weight: 600; }
+    .fn-price-change.down { color: var(--negative); }
+    .fn-price-change.up { color: var(--positive); }
+    .fn-price-meta { display: flex; gap: 20px; font-size: 12px; color: var(--text2); }
+    .fn-price-meta span strong { color: var(--text); }
+
+    /* === SECTION === */
+    .fn-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; margin-bottom: 10px; overflow: hidden;
+    }
+    .fn-section-header {
+      background: var(--header-bg); padding: 8px 16px;
+      font-size: 13px; font-weight: 600; color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .fn-section-body { padding: 16px; }
+
+    /* === 2) CHARTS ROW - 3 charts full width === */
+    .fn-charts-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-bottom: 10px;
+    }
+    .fn-chart-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; overflow: hidden;
+    }
+    .fn-chart-title {
+      background: var(--header-bg); padding: 6px 12px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+    .fn-chart-body { padding: 10px; }
+    .fn-chart-container { position: relative; width: 100%; height: 380px; }
+
+    /* === TABLES === */
+    .fn-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .fn-table th {
+      background: var(--header-bg); color: var(--text2);
+      padding: 7px 10px; text-align: center; font-weight: 600;
+      border-bottom: 1px solid var(--border); font-size: 11px;
+      white-space: nowrap;
+    }
+    .fn-table td {
+      padding: 6px 10px; text-align: right;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .fn-table td:first-child { text-align: left; font-weight: 500; color: var(--text2); }
+    .fn-table tr:hover td { background: var(--row-hover); }
+    .fn-table tr:nth-child(even) td { background: var(--row-stripe); }
+    .fn-table .neg { color: var(--negative); }
+    .fn-table .pos { color: var(--positive); }
+
+    /* === 3) 10-YEAR FINANCIAL === */
+    .fn-fin-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-top: 10px;
+    }
+    .fn-fin-chart-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; overflow: hidden;
+    }
+    .fn-fin-chart-title {
+      background: var(--header-bg); padding: 6px 12px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+    .fn-fin-chart-body { padding: 10px; }
+    .fn-fin-chart-container { position: relative; width: 100%; height: 260px; }
+
+    /* === TWO-COL LAYOUT === */
+    .fn-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+    /* === INLINE TABLE (for market data) === */
+    .fn-inline-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .fn-inline-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .fn-inline-table td:first-child { color: var(--text2); width: 45%; }
+    .fn-inline-table td:last-child { text-align: right; font-weight: 500; }
+
+    /* === SHAREHOLDER === */
+    .fn-holder-bar { display: flex; height: 18px; border-radius: 3px; overflow: hidden; margin: 8px 0; font-size: 0; }
+    .fn-holder-bar > div { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 500; }
+
+    /* === FOOTER === */
+    .fn-footer {
+      text-align: center; padding: 16px; font-size: 11px; color: var(--text3);
+      border-top: 1px solid var(--border); margin-top: 10px;
+    }
+
+    /* === SCROLLABLE TABLE === */
+    .fn-table-scroll { overflow-x: auto; }
+    .fn-table-scroll .fn-table th:first-child,
+    .fn-table-scroll .fn-table td:first-child {
+      position: sticky; left: 0; background: var(--surface); z-index: 1;
+    }
+    .fn-table-scroll .fn-table th:first-child { background: var(--header-bg); }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1200px) {
+      .fn-charts-row { grid-template-columns: 1fr; }
+      .fn-chart-container { height: 300px; }
+      .fn-header { flex-direction: column; gap: 12px; }
+      .fn-header-kpis { min-width: unset; }
+      .fn-two-col { grid-template-columns: 1fr; }
+      .fn-fin-row { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: #fff; color: #222; }
+      .fn-section, .fn-chart-box, .fn-fin-chart-box { border-color: #ddd; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ===== HEADER ===== -->
+  <div class="fn-header">
+    <div class="fn-header-left">
+      <div class="fn-company-name">
+        휴림로봇
+        <span class="code">A090710</span>
+        <span class="badge">KOSDAQ</span>
+      </div>
+      <div class="fn-company-sub">
+        <span>업종: 기계·장비</span>
+        <span>결산: 12월</span>
+        <span>설립: 1999년</span>
+        <span><a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A090710" target="_blank">FnGuide 원본</a></span>
+      </div>
+    </div>
+    <!-- 1) 상단 우측 핵심지표: PER, 업종PER, PBR, ROE, EV/EBITDA, 배당 -->
+    <div class="fn-header-kpis">
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">PER</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
+        <div class="fn-kpi-sub">적자 (산출불가)</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">업종 PER</div>
+        <div class="fn-kpi-value">96.08</div>
+        <div class="fn-kpi-sub">기계·장비</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">PBR</div>
+        <div class="fn-kpi-value">9.91</div>
+        <div class="fn-kpi-sub">순자산 대비</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">ROE</div>
+        <div class="fn-kpi-value" style="color:var(--negative);">-13.42%</div>
+        <div class="fn-kpi-sub">2025/12 연결</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">EV/EBITDA</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
+        <div class="fn-kpi-sub">EBITDA 적자</div>
+      </div>
+      <div class="fn-kpi">
+        <div class="fn-kpi-label">배당수익률</div>
+        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
+        <div class="fn-kpi-sub">무배당</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRICE BAR ===== -->
+  <div class="fn-price-bar">
+    <div class="fn-price">10,600</div>
+    <div class="fn-price-change down">▼ 280 (-2.57%)</div>
+    <div class="fn-price-meta">
+      <span>거래량 <strong>3,316,068</strong></span>
+      <span>거래대금 <strong>354억</strong></span>
+      <span>시가총액 <strong>12,662억</strong></span>
+      <span>52주 <strong style="color:var(--positive);">21,500</strong> / <strong style="color:var(--negative);">1,675</strong></span>
+      <span>Beta <strong>1.15</strong></span>
+    </div>
+  </div>
+
+  <!-- ===== 2) 3 CHARTS - Full Width ===== -->
+  <div class="fn-charts-row">
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">주가추이 · 이동평균선 (5/20/60/120일)</div>
+      <div class="fn-chart-body">
+        <div class="fn-chart-container"><canvas id="priceChart"></canvas></div>
+      </div>
+    </div>
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">거래량 · 내부자거래</div>
+      <div class="fn-chart-body">
+        <div class="fn-chart-container"><canvas id="volumeChart"></canvas></div>
+      </div>
+    </div>
+    <div class="fn-chart-box">
+      <div class="fn-chart-title">외국인지분율 · 시가총액</div>
+      <div class="fn-chart-body">
+        <div class="fn-chart-container"><canvas id="foreignChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MARKET DATA + SHAREHOLDER ===== -->
+  <div class="fn-two-col">
+    <!-- 시세현황 -->
+    <div class="fn-section">
+      <div class="fn-section-header">시세현황 (2026/04/06)</div>
+      <div class="fn-section-body">
+        <table class="fn-inline-table">
+          <tr><td>종가</td><td>10,600원</td></tr>
+          <tr><td>전일대비</td><td style="color:var(--negative);">-280 (-2.57%)</td></tr>
+          <tr><td>시가 / 고가 / 저가</td><td>10,900 / 11,050 / 10,450</td></tr>
+          <tr><td>거래량 / 거래대금</td><td>3,316,068주 / 354억</td></tr>
+          <tr><td>52주 최고 / 최저</td><td style="color:var(--positive);">21,500</td></tr>
+          <tr><td></td><td style="color:var(--negative);">1,675</td></tr>
+          <tr><td>수익률 (1M / 3M / 6M / 1Y)</td><td>-17.6% / +24.7% / +232.3% / +465.6%</td></tr>
+          <tr><td>발행주식수</td><td>119,457,197주</td></tr>
+          <tr><td>액면가</td><td>500원</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 주주현황 -->
+    <div class="fn-section">
+      <div class="fn-section-header">주주현황 · 수급</div>
+      <div class="fn-section-body">
+        <table class="fn-inline-table">
+          <tr><td>최대주주</td><td>휴림홀딩스 (5.25%)</td></tr>
+          <tr><td>자사주</td><td>46,757주 (0.04%)</td></tr>
+          <tr><td>외국인 지분율</td><td>7.61%</td></tr>
+        </table>
+        <div style="margin-top:12px;">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">투자자별 거래 비중</div>
+          <div class="fn-holder-bar">
+            <div style="width:81%;background:var(--accent-dark);">개인 81%</div>
+            <div style="width:17%;background:var(--positive);">외국인 17%</div>
+            <div style="width:2%;background:var(--warning);">기관 2%</div>
+          </div>
+        </div>
+        <table class="fn-inline-table" style="margin-top:8px;">
+          <tr><td>운용사 보유 (케이비)</td><td>1,206.7천주 (1.01%)</td></tr>
+          <tr><td>운용사 보유 (삼성)</td><td>10.3천주 (0.01%)</td></tr>
+          <tr><td>컨센서스</td><td style="color:var(--text3);">없음</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3) 10-YEAR FINANCIAL TABLE ===== -->
+  <div class="fn-section">
+    <div class="fn-section-header">Financial Highlight — 10개년 추이 (연결 기준)</div>
+    <div class="fn-section-body">
+      <div class="fn-table-scroll">
+        <table class="fn-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">항목</th>
+              <th>2016</th><th>2017</th><th>2018</th><th>2019</th><th>2020</th>
+              <th>2021</th><th>2022</th><th>2023</th><th>2024</th><th>2025</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>매출액 (억원)</td>
+              <td>135</td><td>148</td><td>160</td><td>175</td><td>199</td>
+              <td>265</td><td>450</td><td>827</td><td>1,331</td><td>1,683</td>
+            </tr>
+            <tr>
+              <td>영업이익 (억원)</td>
+              <td class="neg">-10</td><td>5</td><td class="neg">-12</td><td class="neg">-20</td><td class="neg">-63</td>
+              <td>10</td><td class="neg">-30</td><td class="neg">-40</td><td class="neg">-49</td><td class="neg">-173</td>
+            </tr>
+            <tr>
+              <td>당기순이익 (억원)</td>
+              <td class="neg">-12</td><td>2</td><td class="neg">-18</td><td class="neg">-25</td><td class="neg">-70</td>
+              <td>3</td><td class="neg">-45</td><td class="neg">-52</td><td class="neg">-94</td><td class="neg">-301</td>
+            </tr>
+            <tr>
+              <td>EPS (원)</td>
+              <td class="neg">-140</td><td>23</td><td class="neg">-210</td><td class="neg">-291</td><td class="neg">-816</td>
+              <td>35</td><td class="neg">-525</td><td class="neg">-607</td><td class="neg">-787</td><td class="neg">-142</td>
+            </tr>
+            <tr>
+              <td>PER (배)</td>
+              <td>-</td><td>45.0</td><td>-</td><td>-</td><td>-</td>
+              <td>52.0</td><td>-</td><td>-</td><td>-</td><td>-</td>
+            </tr>
+            <tr>
+              <td>PBR (배)</td>
+              <td>1.3</td><td>1.8</td><td>2.1</td><td>1.4</td><td>1.6</td>
+              <td>2.3</td><td>3.5</td><td>5.2</td><td>10.2</td><td>9.9</td>
+            </tr>
+            <tr>
+              <td>ROE (%)</td>
+              <td class="neg">-5.5</td><td>1.2</td><td class="neg">-11.0</td><td class="neg">-15.2</td><td class="neg">-28.5</td>
+              <td>1.5</td><td class="neg">-15.8</td><td class="neg">-12.3</td><td class="neg">-8.5</td><td class="neg">-13.4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 10-YEAR CHARTS -->
+      <div class="fn-fin-row">
+        <div class="fn-fin-chart-box">
+          <div class="fn-fin-chart-title">매출액 · 영업이익 · 순이익 추이</div>
+          <div class="fn-fin-chart-body">
+            <div class="fn-fin-chart-container"><canvas id="revChart"></canvas></div>
+          </div>
+        </div>
+        <div class="fn-fin-chart-box">
+          <div class="fn-fin-chart-title">PBR · ROE 추이</div>
+          <div class="fn-fin-chart-body">
+            <div class="fn-fin-chart-container"><canvas id="ratioChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUARTERLY FINANCIAL ===== -->
+  <div class="fn-section">
+    <div class="fn-section-header">분기별 실적 (2025년 연결)</div>
+    <div class="fn-section-body">
+      <table class="fn-table">
+        <thead>
+          <tr><th style="text-align:left;">항목</th><th>2025/03</th><th>2025/06</th><th>2025/09</th><th>2025/12</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>매출액 (억원)</td><td>506</td><td>526</td><td>405</td><td>246</td></tr>
+          <tr><td>영업이익 (억원)</td><td>8</td><td>10</td><td class="neg">-32</td><td class="neg">-159</td></tr>
+          <tr><td>당기순이익 (억원)</td><td class="neg">-17</td><td>14</td><td class="neg">-28</td><td class="neg">-270</td></tr>
+          <tr><td>EPS (원)</td><td class="neg">-17</td><td>11</td><td class="neg">-22</td><td class="neg">-114</td></tr>
+          <tr><td>영업이익률 (%)</td><td>1.6</td><td>1.9</td><td class="neg">-7.9</td><td class="neg">-64.6</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== BUSINESS + INDUSTRY COMPARE ===== -->
+  <div class="fn-two-col">
+    <div class="fn-section">
+      <div class="fn-section-header">Business Summary (2025/12)</div>
+      <div class="fn-section-body" style="font-size:12px;color:var(--text2);line-height:1.8;">
+        <p>1999년 설립, 2006년 코스닥 상장. 6개 종속회사 보유.</p>
+        <p style="margin-top:6px;">
+          <strong style="color:var(--text);">주요사업:</strong> 산업용 로봇(직교, SCARA, 선형), AMR 자율이동로봇(TETRA-DSV),
+          로봇 SI(스마트팩토리), 스마트 서보모듈(HERKULEX), 특수로봇(소방/원전해체)
+        </p>
+        <p style="margin-top:6px;">
+          <strong style="color:var(--text);">고객사:</strong> 삼성전자, SK하이닉스 |
+          <strong style="color:var(--text);">물류로봇 점유율:</strong> ~25%
+        </p>
+        <p style="margin-top:6px;">
+          <strong style="color:var(--text);">2025년 실적:</strong> 매출 1,683억(YoY +26.4%), 영업손실 -173억(적자확대),
+          당기순손실 -301억. Q1~Q2 흑자 전환 시그널 후 Q3~Q4 대규모 적자 발생.
+        </p>
+        <p style="margin-top:6px;">
+          <strong style="color:var(--warning);">이슈:</strong> 최대주주 지분 매각(7.1%→5.2%), K-휴머노이드 연합 참여, 영업CF -308억
+        </p>
+      </div>
+    </div>
+
+    <div class="fn-section">
+      <div class="fn-section-header">업종비교 (기계·장비)</div>
+      <div class="fn-section-body">
+        <table class="fn-table">
+          <thead>
+            <tr><th style="text-align:left;">항목</th><th>휴림로봇</th><th>업종평균</th><th>KOSDAQ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>시가총액 (억원)</td><td>12,662</td><td>885,510</td><td>5,713,088</td></tr>
+            <tr><td>매출액 (억원)</td><td>1,683</td><td>272,056</td><td>3,565,275</td></tr>
+            <tr><td>영업이익 (억원)</td><td class="neg">-173</td><td>11,410</td><td>138,256</td></tr>
+            <tr><td>PER (배)</td><td>N/A</td><td>41.75</td><td>114.05</td></tr>
+            <tr><td>PBR (배)</td><td>9.91</td><td>-</td><td>-</td></tr>
+            <tr><td>ROE (%)</td><td class="neg">-13.42</td><td>-</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BALANCE SHEET SUMMARY ===== -->
+  <div class="fn-section">
+    <div class="fn-section-header">재무상태 요약 (2025/12 연결)</div>
+    <div class="fn-section-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <table class="fn-inline-table">
+          <tr><td>자산총계</td><td>2,767억</td></tr>
+          <tr><td>유동자산</td><td>1,840억</td></tr>
+          <tr><td>현금성자산</td><td>459억</td></tr>
+          <tr><td>재고자산</td><td>404억</td></tr>
+        </table>
+        <table class="fn-inline-table">
+          <tr><td>부채총계</td><td>734억</td></tr>
+          <tr><td>유동부채</td><td>568억</td></tr>
+          <tr><td>차입금</td><td>509억</td></tr>
+          <tr><td>부채비율</td><td>36.1%</td></tr>
+        </table>
+        <table class="fn-inline-table">
+          <tr><td>자본총계</td><td>2,033억</td></tr>
+          <tr><td>운전자본</td><td>1,272억</td></tr>
+          <tr><td>영업CF</td><td class="neg" style="color:var(--negative);">-308억</td></tr>
+          <tr><td>FCF</td><td class="neg" style="color:var(--negative);">-359억</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 4) 목표주가 · 컨센서스 ===== -->
+  <div class="fn-section">
+    <div class="fn-section-header">투자의견 · 목표주가</div>
+    <div class="fn-section-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <table class="fn-inline-table">
+            <tr><td>컨센서스</td><td style="color:var(--text3);">커버리지 없음</td></tr>
+            <tr><td>애널리스트 수</td><td style="color:var(--text3);">0개 증권사</td></tr>
+            <tr><td>평균 목표주가</td><td style="color:var(--text3);">N/A</td></tr>
+            <tr><td>현재가 대비 괴리율</td><td style="color:var(--text3);">N/A</td></tr>
+          </table>
+          <div style="margin-top:10px;padding:10px;background:rgba(255,167,38,0.08);border-left:3px solid var(--warning);border-radius:0 4px 4px 0;font-size:11px;color:var(--text2);">
+            <strong style="color:var(--warning);">참고:</strong> 현재 증권사 커버리지가 없어 공식 목표주가가 존재하지 않습니다.
+            소형주 특성상 정보 비대칭이 높으므로 자체 분석이 필수입니다.
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">참고 밸류에이션 시나리오</div>
+          <table class="fn-inline-table">
+            <tr><td>현재가</td><td>10,600원</td></tr>
+            <tr><td>PBR 5배 적용 시</td><td style="color:var(--positive);">~5,350원</td></tr>
+            <tr><td>PBR 업종평균 적용</td><td style="color:var(--text3);">산출불가 (업종평균 미제공)</td></tr>
+            <tr><td>흑자전환 시 PER 40배 가정</td><td style="color:var(--text3);">EPS 양전 필요</td></tr>
+          </table>
+          <div style="margin-top:10px;padding:10px;background:rgba(239,83,80,0.08);border-left:3px solid var(--negative);border-radius:0 4px 4px 0;font-size:11px;color:var(--text2);">
+            <strong style="color:var(--negative);">주의:</strong> 현재 PBR 9.91배는 순자산 대비 약 10배 프리미엄.
+            적자 지속 시 자본잠식 위험도 고려해야 합니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="fn-footer">
+    기준일: 2026.04.06 | 데이터 출처: FnGuide, yfinance | 본 자료는 정보 제공 목적이며 투자 조언이 아닙니다.
+  </div>
+
+</div>
+
+<!-- ===== CHARTS ===== -->
+<script>
+  var txtC = '#9ba4c4';
+  var gridC = 'rgba(255,255,255,0.04)';
+
+  // === 주가 데이터 (2년 일봉에서 MA 계산 후, 최근 1년 주간 샘플링 53주) ===
+  // 출처: yfinance 090710.KQ history(interval='1d'), MA는 일별 기준 정확 계산
+  var pDates = [
+    '04/11','04/18','04/25','05/02','05/09','05/16','05/23','05/30',
+    '06/06','06/13','06/20','06/27','07/04','07/11','07/18','07/25',
+    '08/01','08/08','08/15','08/22','08/29','09/05','09/12','09/19',
+    '09/26','10/03','10/10','10/17','10/24','10/31','11/07','11/14',
+    '11/21','11/28','12/05','12/12','12/19','12/26','2026 01/02','01/09',
+    '01/16','01/23','01/30','02/06','02/13','02/20','02/27','03/06',
+    '03/13','03/20','03/27','04/03','04/10'
+  ];
+  var pClose = [
+    1826,2025,2000,1897,1950,2115,2030,2025,
+    2125,2115,2300,3130,3055,3030,3100,2800,
+    2530,2500,2470,2465,2550,2605,3020,3500,
+    3170,3190,3480,4605,6080,6450,6310,5500,
+    4975,5330,5460,5850,5520,6200,8190,8130,
+    12810,15280,14740,13770,14000,14290,14430,12860,
+    12120,14020,12920,10880,10600
+  ];
+
+  // 이동평균선 (일별 데이터에서 정확히 계산 후 주간 샘플링 — 전 구간 유효)
+  var pMA5 = [
+    1751,2053,2001,1946,1936,2115,2022,2042,
+    2077,2119,2191,2647,3231,2977,3119,2955,
+    2599,2483,2492,2427,2597,2611,2866,3488,
+    3343,3197,3259,4039,6076,6132,7008,5824,
+    5217,5002,5504,5712,5730,6062,7272,8224,
+    10238,15482,15106,14100,14200,14140,14924,12738,
+    12374,13728,13578,11048,10740
+  ];
+  var pMA20 = [
+    1936,1932,1944,1931,1958,2019,2014,2029,
+    2057,2073,2104,2258,2547,2762,2994,3070,
+    2912,2789,2662,2515,2501,2532,2625,2890,
+    3077,3195,3239,3532,4179,4876,5814,6260,
+    6045,5763,5387,5359,5487,5742,6124,6765,
+    7866,9708,11846,13332,14722,14938,14505,13964,
+    13556,13434,13104,12682,12615
+  ];
+  var pMA60 = [
+    2034,2070,2101,2117,2112,2093,2033,2009,
+    2008,2007,2017,2074,2179,2282,2370,2450,
+    2505,2541,2569,2602,2647,2688,2747,2831,
+    2839,2856,2862,2940,3195,3485,3862,4139,
+    4372,4572,4813,5050,5237,5425,5657,6059,
+    6491,7080,7828,8419,9117,9409,10236,10713,
+    11278,11937,12599,12946,12986
+  ];
+  var pMA120 = [
+    1728,1760,1795,1819,1838,1869,1889,1906,
+    1919,1950,1982,2035,2104,2158,2220,2276,
+    2313,2322,2318,2310,2327,2348,2379,2443,
+    2499,2548,2562,2646,2816,2990,3199,3354,
+    3487,3609,3750,3899,4034,4131,4252,4470,
+    4765,5137,5656,6140,6628,6823,7340,7666,
+    8071,8516,8937,9260,9322
+  ];
+
+  // === 거래량 (주간 합계) ===
+  var vData = [
+    13798717,61347315,10290198,5479879,6511897,62231406,19873637,8956541,
+    7280530,11251761,46923192,203533304,126502690,56873917,41840229,22030933,
+    19213406,26441983,14269873,9853237,35368014,22711627,90639929,228663550,
+    47730488,15978733,16498840,240136900,283455160,74800174,111977790,55882933,
+    35595361,36222549,67531265,48896869,63959044,118966841,163518220,72543880,
+    179950374,210694610,249981210,72170479,68394244,23884201,55758968,54026454,
+    26376604,108693795,39192978,41091341,3316068
+  ];
+
+  // 내부자거래 (53개 포인트, 2026년 2월 초 최대주주 매도 162만주)
+  var insiderBuy = new Array(53).fill(0);
+  var insiderSell = new Array(53).fill(0);
+  insiderSell[43] = 1620000; // 2026-02-06 주간
+
+  // Foreign + MktCap
+  var fDates = ['2025Q1','Q2','Q3','Q4','2026Q1','현재'];
+  var fPct = [3.5, 4.2, 5.8, 6.5, 7.2, 7.61];
+  var mCap = [1500, 1400, 1650, 6800, 19500, 12662];
+
+  // 10-year
+  var yrs = ['2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'];
+  var rev10 = [135, 148, 160, 175, 199, 265, 450, 827, 1331, 1683];
+  var op10 =  [-10, 5, -12, -20, -63, 10, -30, -40, -49, -173];
+  var ni10 =  [-12, 2, -18, -25, -70, 3, -45, -52, -94, -301];
+  var pbr10 = [1.3, 1.8, 2.1, 1.4, 1.6, 2.3, 3.5, 5.2, 10.2, 9.9];
+  var roe10 = [-5.5, 1.2, -11.0, -15.2, -28.5, 1.5, -15.8, -12.3, -8.5, -13.4];
+
+  function buildCharts() {
+    if (typeof Chart === 'undefined') return;
+
+    // --- 1) 주가 + 이동평균선 ---
+    new Chart(document.getElementById('priceChart'), {
+      type: 'line',
+      data: {
+        labels: pDates,
+        datasets: [
+          { label: '종가', data: pClose, borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.06)', fill: true, tension: 0.3, pointRadius: 1.5, borderWidth: 2.2, order: 0 },
+          { label: 'MA5', data: pMA5, borderColor: '#ffa726', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 1 },
+          { label: 'MA20', data: pMA20, borderColor: '#66bb6a', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 2 },
+          { label: 'MA60', data: pMA60, borderColor: '#ef5350', borderWidth: 1.5, borderDash: [5,3], pointRadius: 0, tension: 0.3, fill: false, order: 3 },
+          { label: 'MA120', data: pMA120, borderColor: '#ab47bc', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, tension: 0.3, fill: false, order: 4 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, pointStyle: 'line', padding: 8 }, position: 'top' },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString() + '원' : '-'); } } }
+        },
+        scales: {
+          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000 ? (v/1000).toFixed(0)+'K' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
+          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    // --- 2) 거래량 + 내부자거래 (별도 데이터셋) ---
+    new Chart(document.getElementById('volumeChart'), {
+      type: 'bar',
+      data: {
+        labels: pDates,
+        datasets: [
+          {
+            label: '거래량',
+            data: vData,
+            backgroundColor: vData.map(function(v,i) {
+              return pClose[i] >= (pClose[i-1] || pClose[i])
+                ? 'rgba(102,187,106,0.5)' : 'rgba(239,83,80,0.5)';
+            }),
+            yAxisID: 'y',
+            borderRadius: 2,
+            order: 1
+          },
+          {
+            label: '내부자 매수',
+            data: insiderBuy,
+            backgroundColor: 'rgba(79,195,247,0.9)',
+            yAxisID: 'y',
+            borderRadius: 2,
+            order: 0,
+            barPercentage: 0.4
+          },
+          {
+            label: '내부자 매도',
+            data: insiderSell,
+            backgroundColor: 'rgba(171,71,188,0.9)',
+            yAxisID: 'y',
+            borderRadius: 2,
+            order: 0,
+            barPercentage: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                var val = ctx.parsed.y;
+                if (val === 0) return null;
+                return ctx.dataset.label + ': ' + (val >= 1000000 ? (val/1000000).toFixed(1)+'M' : val.toLocaleString()) + '주';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            position: 'left',
+            ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(0)+'M' : v; } },
+            grid: { color: gridC }, border: { color: 'transparent' }
+          },
+          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    // --- 3) 외국인 + 시가총액 ---
+    new Chart(document.getElementById('foreignChart'), {
+      type: 'line',
+      data: {
+        labels: fDates,
+        datasets: [
+          { label: '외국인지분율(%)', data: fPct, borderColor: '#66bb6a', backgroundColor: 'rgba(102,187,106,0.06)', fill: true, tension: 0.35, pointRadius: 4, borderWidth: 2, yAxisID: 'y' },
+          { label: '시가총액(억원)', data: mCap, borderColor: '#ffa726', fill: false, tension: 0.35, pointRadius: 4, borderWidth: 2, borderDash: [4,2], yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, padding: 8 } } },
+        scales: {
+          y: { position: 'left', ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v+'%'; } }, grid: { color: gridC }, border: { color: 'transparent' }, title: { display: true, text: '외국인(%)', color: txtC, font: { size: 10 } } },
+          y1: { position: 'right', ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 10000 ? (v/10000).toFixed(1)+'조' : v.toLocaleString(); } }, grid: { display: false }, border: { color: 'transparent' }, title: { display: true, text: '시총(억)', color: txtC, font: { size: 10 } } },
+          x: { ticks: { color: txtC, font: { size: 10 } }, grid: { color: gridC }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    // --- 4) 매출/영업이익/순이익 Bar ---
+    new Chart(document.getElementById('revChart'), {
+      type: 'bar',
+      data: {
+        labels: yrs,
+        datasets: [
+          { label: '매출액', data: rev10, backgroundColor: 'rgba(79,195,247,0.6)', borderRadius: 3 },
+          { label: '영업이익', data: op10, backgroundColor: op10.map(function(v) { return v >= 0 ? 'rgba(102,187,106,0.6)' : 'rgba(239,83,80,0.6)'; }), borderRadius: 3 },
+          { label: '순이익', data: ni10, backgroundColor: ni10.map(function(v) { return v >= 0 ? 'rgba(171,71,188,0.6)' : 'rgba(239,83,80,0.35)'; }), borderRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
+        scales: {
+          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v+'억'; } }, grid: { color: gridC }, border: { color: 'transparent' } },
+          x: { ticks: { color: txtC, font: { size: 10 } }, grid: { display: false }, border: { color: 'transparent' } }
+        }
+      }
+    });
+
+    // --- 5) PBR / ROE Line ---
+    new Chart(document.getElementById('ratioChart'), {
+      type: 'line',
+      data: {
+        labels: yrs,
+        datasets: [
+          { label: 'ROE(%)', data: roe10, borderColor: '#ef5350', fill: false, tension: 0.35, pointRadius: 4, borderWidth: 2, yAxisID: 'y' },
+          { label: 'PBR(배)', data: pbr10, borderColor: '#ffa726', fill: false, tension: 0.35, pointRadius: 4, borderWidth: 2, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, padding: 8 } } },
+        scales: {
+          y: { position: 'left', ticks: { color: txtC, font: { size: 10 } }, grid: { color: gridC }, border: { color: 'transparent' }, title: { display: true, text: 'ROE(%)', color: txtC, font: { size: 10 } } },
+          y1: { position: 'right', ticks: { color: txtC, font: { size: 10 } }, grid: { display: false }, border: { color: 'transparent' }, title: { display: true, text: 'PBR', color: txtC, font: { size: 10 } } },
+          x: { ticks: { color: txtC, font: { size: 10 } }, grid: { display: false }, border: { color: 'transparent' } }
+        }
+      }
+    });
+  }
+
+  window.addEventListener('load', buildCharts);
+</script>
+</body>
+</html>
