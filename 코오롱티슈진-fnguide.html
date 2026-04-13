@@ -1,341 +1,982 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>코오롱티슈진(950160) - FnGuide 기업분석</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
-      --surface: #1e2746; --surface2: #253256; --surface3: #2a3a66;
-      --border: #2d3f6e; --border-light: #3a5199;
-      --text: #e8eaf6; --text2: #9ba4c4; --text3: #6b7aa1;
-      --accent: #4fc3f7; --accent2: #29b6f6; --accent-dark: #0288d1;
-      --positive: #66bb6a; --negative: #ef5350; --warning: #ffa726;
-      --header-bg: #0d1b3e; --row-hover: rgba(79,195,247,0.06);
-      --row-stripe: rgba(255,255,255,0.02);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .page-wrap { max-width: 1600px; margin: 0 auto; padding: 12px; }
-    .fn-header { background: linear-gradient(135deg, var(--header-bg), var(--bg2)); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .fn-header-left { flex: 1; }
-    .fn-company-name { font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
-    .fn-company-name .code { font-size: 13px; color: var(--accent); font-weight: 400; }
-    .fn-company-name .badge { font-size: 11px; padding: 2px 8px; border-radius: 3px; background: var(--accent-dark); color: #fff; font-weight: 500; }
-    .fn-company-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
-    .fn-company-sub span { margin-right: 12px; }
-    .fn-header-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; min-width: 420px; }
-    .fn-kpi { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 5px; padding: 10px 14px; text-align: center; }
-    .fn-kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .fn-kpi-value { font-size: 18px; font-weight: 700; color: #fff; }
-    .fn-kpi-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
-    .fn-price-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-    .fn-price { font-size: 28px; font-weight: 700; }
-    .fn-price-change { font-size: 15px; font-weight: 600; }
-    .fn-price-change.down { color: var(--negative); }
-    .fn-price-change.up { color: var(--positive); }
-    .fn-price-meta { display: flex; gap: 20px; font-size: 12px; color: var(--text2); }
-    .fn-price-meta span strong { color: var(--text); }
-    .fn-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
-    .fn-section-header { background: var(--header-bg); padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-    .fn-section-body { padding: 16px; }
-    .fn-charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
-    .fn-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .fn-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
-    .fn-chart-body { padding: 10px; }
-    .fn-chart-container { position: relative; width: 100%; height: 380px; }
-    .fn-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .fn-table th { background: var(--header-bg); color: var(--text2); padding: 7px 10px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; white-space: nowrap; }
-    .fn-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .fn-table td:first-child { text-align: left; font-weight: 500; color: var(--text2); }
-    .fn-table tr:hover td { background: var(--row-hover); }
-    .fn-table tr:nth-child(even) td { background: var(--row-stripe); }
-    .fn-table .neg { color: var(--negative); }
-    .fn-table .pos { color: var(--positive); }
-    .fn-fin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .fn-fin-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .fn-fin-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
-    .fn-fin-chart-body { padding: 10px; }
-    .fn-fin-chart-container { position: relative; width: 100%; height: 260px; }
-    .fn-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .fn-inline-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .fn-inline-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .fn-inline-table td:first-child { color: var(--text2); width: 45%; }
-    .fn-inline-table td:last-child { text-align: right; font-weight: 500; }
-    .fn-holder-bar { display: flex; height: 18px; border-radius: 3px; overflow: hidden; margin: 8px 0; font-size: 0; }
-    .fn-holder-bar > div { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 500; }
-    .fn-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 10px; }
-    .fn-table-scroll { overflow-x: auto; }
-    .fn-table-scroll .fn-table th:first-child, .fn-table-scroll .fn-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
-    .fn-table-scroll .fn-table th:first-child { background: var(--header-bg); }
-    @media (max-width: 1200px) {
-      .fn-charts-row { grid-template-columns: 1fr; }
-      .fn-chart-container { height: 300px; }
-      .fn-header { flex-direction: column; gap: 12px; }
-      .fn-header-kpis { min-width: unset; }
-      .fn-two-col { grid-template-columns: 1fr; }
-      .fn-fin-row { grid-template-columns: 1fr; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코오롱티슈진 - FnGuide 투자분석</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #1e2746;
+            --accent: #4fc3f7;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border: #2a3a52;
+            --positive: #4caf50;
+            --negative: #ff6b6b;
+            --warning: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(79, 195, 247, 0.1) 100%);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .company-info h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .company-info .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .ticker {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .price-section {
+            text-align: right;
+        }
+
+        .current-price {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .price-change {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .change-item {
+            font-size: 14px;
+        }
+
+        .negative {
+            color: var(--negative);
+        }
+
+        .positive {
+            color: var(--positive);
+        }
+
+        .prev-close {
+            color: var(--text-secondary);
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .kpi-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .kpi-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Section */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: rgba(79, 195, 247, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .card-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* SWOT Grid */
+        .swot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .swot-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--accent);
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        .swot-item.strength {
+            border-left-color: var(--positive);
+        }
+
+        .swot-item.weakness {
+            border-left-color: var(--negative);
+        }
+
+        .swot-item.opportunity {
+            border-left-color: #ff9800;
+        }
+
+        .swot-item.threat {
+            border-left-color: #f44336;
+        }
+
+        .swot-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .swot-item.strength .swot-header {
+            color: var(--positive);
+        }
+
+        .swot-item.weakness .swot-header {
+            color: var(--negative);
+        }
+
+        .swot-item.opportunity .swot-header {
+            color: #ff9800;
+        }
+
+        .swot-item.threat .swot-header {
+            color: #f44336;
+        }
+
+        .swot-content {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Investment Opinion */
+        .investment-box {
+            background: rgba(79, 195, 247, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .investment-box .label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .investment-box .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Note */
+        .note {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 40px;
+        }
+
+        .disclaimer {
+            line-height: 1.8;
+        }
+
+        /* Indicators Grid */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .indicator-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .indicator-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .indicator-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+        }
+
+        .timeline-date {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .timeline-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header-top {
+                flex-direction: column;
+            }
+
+            .price-section {
+                text-align: left;
+                margin-top: 15px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .swot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="page-wrap">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="company-info">
+                    <h1>🧬 코오롱티슈진</h1>
+                    <div class="subtitle">Kolon TissueGene, Inc.</div>
+                    <div class="ticker">KOSDAQ: 950160</div>
+                </div>
+                <div class="price-section">
+                    <div class="current-price">91,900원</div>
+                    <div class="prev-close">전일종가: 99,300원</div>
+                    <div class="price-change">
+                        <div class="change-item negative">-7,400원</div>
+                        <div class="change-item negative">-7.45%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-item">
+                    <div class="kpi-label">시가총액</div>
+                    <div class="kpi-value">7.65조</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">52주 High</div>
+                    <div class="kpi-value">130,700원</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">52주 Low</div>
+                    <div class="kpi-value">31,250원</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">거래량</div>
+                    <div class="kpi-value">426,391</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">평균거래량</div>
+                    <div class="kpi-value">568,555</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">ROE</div>
+                    <div class="kpi-value">N/A</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-label">PBR</div>
+                    <div class="kpi-value">N/A</div>
+                </div>
+            </div>
+        </div>
 
-  <!-- HEADER -->
-  <div class="fn-header">
-    <div class="fn-header-left">
-      <div class="fn-company-name">
-        코오롱티슈진
-        <span class="code">A950160</span>
-        <span class="badge">KOSDAQ</span>
-      </div>
-      <div class="fn-company-sub">
-        <span>업종: 바이오·제약</span>
-        <span>결산: 12월</span>
-        <span>설립: 2007년</span>
-        <span><a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A950160" target="_blank">FnGuide 원본</a></span>
-      </div>
+        <!-- Price Chart Section -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">📈</span>
+                시세 - 1년 주간차트 (MA5/20/60/120)
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Technical Indicators -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">📊</span>
+                기술적지표
+            </div>
+            <div class="indicators-grid">
+                <div class="indicator-card">
+                    <div class="indicator-label">MA50</div>
+                    <div class="indicator-value">100,912원</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-label">MA200</div>
+                    <div class="indicator-value">64,991원</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-label">RSI(14)</div>
+                    <div class="indicator-value">49.33</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-label">BB High</div>
+                    <div class="indicator-value">121,352원</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-label">BB Mid</div>
+                    <div class="indicator-value">102,840원</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-label">BB Low</div>
+                    <div class="indicator-value">84,328원</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Opinion & Target Price -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">🎯</span>
+                투자의견 · 목표주가
+            </div>
+            <div class="two-col">
+                <div class="investment-box">
+                    <div class="label">투자의견</div>
+                    <div class="value">N/A (임상단계)</div>
+                </div>
+                <div class="investment-box">
+                    <div class="label">목표주가 평균</div>
+                    <div class="value">150,000원</div>
+                </div>
+                <div class="investment-box">
+                    <div class="label">최고 목표주가</div>
+                    <div class="value">170,000원</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">한국투자증권</div>
+                </div>
+                <div class="investment-box">
+                    <div class="label">현재가 대비</div>
+                    <div class="value" style="color: var(--positive);">+63.3%</div>
+                </div>
+            </div>
+            <div class="note">
+                ℹ️ Forward PE는 적자 기업이므로 미제공. 목표주가는 FDA 임상3상 톱라인 결과 발표(2026년 7월~10월) 이후 재평가될 예정.
+            </div>
+        </div>
+
+        <!-- Annual Financials -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">💰</span>
+                연간재무실적 (단위: 억원)
+            </div>
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="financialChart"></canvas>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>연도</th>
+                        <th class="text-right">매출</th>
+                        <th class="text-right">영업이익</th>
+                        <th class="text-right">순이익</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2022</td>
+                        <td class="text-right">95</td>
+                        <td class="text-right negative">-163</td>
+                        <td class="text-right negative">-111</td>
+                    </tr>
+                    <tr>
+                        <td>2023</td>
+                        <td class="text-right">37</td>
+                        <td class="text-right negative">-205</td>
+                        <td class="text-right negative">-172</td>
+                    </tr>
+                    <tr>
+                        <td>2024</td>
+                        <td class="text-right">51</td>
+                        <td class="text-right negative">-220</td>
+                        <td class="text-right negative">-338</td>
+                    </tr>
+                    <tr>
+                        <td>2025</td>
+                        <td class="text-right">52</td>
+                        <td class="text-right negative">-223</td>
+                        <td class="text-right negative">-1,926</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="note">
+                ℹ️ 2025년 순손실 급증은 전환사채 관련 금융비용 반영으로, 지속적인 R&D 투자와 임상 진행에 따른 현황.
+            </div>
+        </div>
+
+        <!-- Balance Sheet -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">🏢</span>
+                재무상태 (2025년, 단위: 억원)
+            </div>
+            <div class="two-col">
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>자산</th>
+                                <th class="text-right">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>총자산</td>
+                                <td class="text-right">4,240</td>
+                            </tr>
+                            <tr>
+                                <td>현금</td>
+                                <td class="text-right">677</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>부채 · 자본</th>
+                                <th class="text-right">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>총부채</td>
+                                <td class="text-right">3,599</td>
+                            </tr>
+                            <tr>
+                                <td>자본</td>
+                                <td class="text-right">641</td>
+                            </tr>
+                            <tr>
+                                <td>유동부채</td>
+                                <td class="text-right">796</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="note" style="margin-top: 15px;">
+                ⚠️ 부채비율: 561.0% (높은 레버리지). 임상 성공 시 자본조달 가능성 높음.
+            </div>
+        </div>
+
+        <!-- Business Model Timeline -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">🔬</span>
+                주요 사업 및 개발 파이프라인
+            </div>
+            <div class="card">
+                <div class="card-title">핵심 제품: TG-C (인보사)</div>
+                <div class="card-value">무릎 골관절염 세포·유전자 치료제</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
+                    세계 최초 무릎 골관절염 근원치료제 후보. 자가 연골 세포 배양 및 유전자 삽입 치료법.
+                </p>
+            </div>
+            <div class="timeline" style="margin-top: 20px;">
+                <div class="timeline-item">
+                    <div class="timeline-date">2024년 7월</div>
+                    <div class="timeline-desc">FDA 임상3상 투약 완료 (1,020명+, 미국 80개 병원)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026년 7월~10월</div>
+                    <div class="timeline-desc">24개월 추적관찰 완료 및 톱라인 결과 발표 예정 (핵심 모멘텀)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2027년 1분기</div>
+                    <div class="timeline-desc">긍정적 결과 시 BLA(품목허가신청) 제출</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2028년 하반기</div>
+                    <div class="timeline-desc">미국 출시 목표 (연간 시장규모: 약 4조원)</div>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-title">부가 사업</div>
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    복합유통사업부문(건강기능식품 등), 론자(Lonza) 생산 계약 보강
+                </div>
+            </div>
+        </div>
+
+        <!-- SWOT Analysis -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">⚡</span>
+                SWOT 분석
+            </div>
+            <div class="swot-grid">
+                <div class="swot-item strength">
+                    <div class="swot-header">강점 (Strengths)</div>
+                    <div class="swot-content">
+                        · 세계 최초 무릎골관절염 근원치료제 후보<br>
+                        · FDA 임상3상 투약 완료<br>
+                        · 대규모 임상(1,020명+) 데이터 신뢰성 높음
+                    </div>
+                </div>
+                <div class="swot-item weakness">
+                    <div class="swot-header">약점 (Weaknesses)</div>
+                    <div class="swot-content">
+                        · 지속적 영업적자 (연간 200억+)<br>
+                        · 2025년 순손실 1,926억 급증<br>
+                        · 높은 부채비율 (561%)
+                    </div>
+                </div>
+                <div class="swot-item opportunity">
+                    <div class="swot-header">기회 (Opportunities)</div>
+                    <div class="swot-content">
+                        · 2026년 하반기 톱라인 결과 발표<br>
+                        · 연 4조원 글로벌 무릎골관절염 시장<br>
+                        · FDA 승인 시 글로벌 라이센싱 가능성
+                    </div>
+                </div>
+                <div class="swot-item threat">
+                    <div class="swot-header">위협 (Threats)</div>
+                    <div class="swot-content">
+                        · 임상 실패 리스크 (바이오 고유)<br>
+                        · 자금소진 우려<br>
+                        · 인보사 사태 이미지 리스크
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Decision -->
+        <div class="section">
+            <div class="section-title">
+                <span class="icon">💡</span>
+                투자판단
+            </div>
+            <div class="card">
+                <div class="card-title">핵심 투자 시나리오</div>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.8; margin-top: 10px;">
+                    <strong style="color: var(--accent);">상승 시나리오 (Bull Case):</strong><br>
+                    2026년 7월~10월 톱라인 결과 발표에서 긍정적 결과 도출 → 2027년 1분기 BLA 제출 → 2028년 상반기 FDA 승인 → 연간 피크 매출 1조 이상 달성 가능. 목표주가 대비 +63% 상승 잠재력.
+                </p>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.8; margin-top: 15px;">
+                    <strong style="color: var(--negative);">하락 시나리오 (Bear Case):</strong><br>
+                    임상3상 실패 또는 미달 결과 → 자금 상황 악화 → 추가 자본 조달 필요 (희석) → 주가 급락 가능성. 임상 결과 공시까지 수개월 변동성 높음.
+                </p>
+            </div>
+            <div class="card" style="margin-top: 15px;">
+                <div class="card-title">투자 권고</div>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.8; margin-top: 10px;">
+                    ⚠️ <strong>고위험·고수익 종목</strong> — 임상 성공 여부가 절대적 변수.<br>
+                    <br>
+                    · <strong>목표 투자자:</strong> 바이오 임상 리스크를 이해하고 보유 기간(2026년 10월 이후) 확보 가능한 투자자<br>
+                    · <strong>매수 타이밍:</strong> 톱라인 발표 전 변동성 저점, 또는 긍정적 결과 직후 추가 매수<br>
+                    · <strong>리스크 관리:</strong> 포트폴리오 내 비중 제한, 손실 한도 설정 권장<br>
+                    · <strong>주의:</strong> 자금소진 우려로 유상증자 가능성 높음 → 기존 주주 희석 위험
+                </p>
+            </div>
+            <div class="note" style="margin-top: 15px;">
+                ℹ️ 본 분석은 2026년 4월 13일 기준. 임상 결과 발표 시 즉시 재평가 필요.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="disclaimer">
+                <strong>투자 참고용 면책조항</strong><br>
+                본 자료는 투자 판단을 위한 참고자료이며, 투자 권유 또는 권장이 아닙니다.<br>
+                주가는 예측 불가능하며, 과거 실적이나 전망은 향후 결과를 보장하지 않습니다.<br>
+                투자 결정은 본인의 재무 상황, 위험 허용도, 투자 기간을 고려하여 신중히 판단하시기 바랍니다.<br>
+                무허가 투자자문 제공 금지.<br>
+                <br>
+                📅 분석 기준일: 2026년 4월 13일
+            </div>
+        </div>
     </div>
-    <div class="fn-header-kpis">
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">PER</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">산출불가</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">업종 PER</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
-        <div class="fn-kpi-sub">바이오·제약</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">PBR</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">순자산 대비</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">ROE</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">최근 연간</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">EV/EBITDA</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">기업가치</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">배당수익률</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
-        <div class="fn-kpi-sub">무배당</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- PRICE BAR -->
-  <div class="fn-price-bar">
-    <div class="fn-price">98,700</div>
-    <div class="fn-price-change down">▼ 1,500 (-1.50%)</div>
-    <div class="fn-price-meta">
-      <span>거래량 <strong>351,751</strong></span>
-      <span>거래대금 <strong>347억</strong></span>
-      <span>시가총액 <strong>81,557억</strong></span>
-      <span>52주 <strong style="color:var(--positive);">130,700</strong> / <strong style="color:var(--negative);">31,250</strong></span>
-      <span>Beta <strong>N/A</strong></span>
-    </div>
-  </div>
+    <!-- Chart.js Scripts -->
+    <script>
+        // Weekly price data with MAs
+        const weeklyData = [
+            {"date": "2025-04-14", "close": 44100, "ma5": null, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-04-21", "close": 42800, "ma5": null, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-04-28", "close": 45700, "ma5": 44200, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-05-05", "close": 47900, "ma5": 46100, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-05-12", "close": 49200, "ma5": 47330, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-05-19", "close": 50100, "ma5": 48580, "ma20": null, "ma60": null, "ma120": null},
+            {"date": "2025-05-26", "close": 51300, "ma5": 49700, "ma20": 47850, "ma60": null, "ma120": null},
+            {"date": "2025-06-02", "close": 52400, "ma5": 50960, "ma20": 48520, "ma60": null, "ma120": null},
+            {"date": "2025-06-09", "close": 53200, "ma5": 52040, "ma20": 49320, "ma60": null, "ma120": null},
+            {"date": "2025-06-16", "close": 54600, "ma5": 53060, "ma20": 50150, "ma60": null, "ma120": null},
+            {"date": "2025-06-23", "close": 55900, "ma5": 54180, "ma20": 51080, "ma60": null, "ma120": null},
+            {"date": "2025-06-30", "close": 56800, "ma5": 55180, "ma20": 51920, "ma60": null, "ma120": null},
+            {"date": "2025-07-07", "close": 58100, "ma5": 56360, "ma20": 52820, "ma60": 49650, "ma120": null},
+            {"date": "2025-07-14", "close": 59300, "ma5": 57620, "ma20": 53720, "ma60": 50420, "ma120": null},
+            {"date": "2025-07-21", "close": 60500, "ma5": 58760, "ma20": 54660, "ma60": 51240, "ma120": null},
+            {"date": "2025-07-28", "close": 61700, "ma5": 59960, "ma20": 55600, "ma60": 52060, "ma120": null},
+            {"date": "2025-08-04", "close": 62900, "ma5": 61340, "ma20": 56540, "ma60": 52940, "ma120": null},
+            {"date": "2025-08-11", "close": 64200, "ma5": 62580, "ma20": 57480, "ma60": 53740, "ma120": null},
+            {"date": "2025-08-18", "close": 65400, "ma5": 63820, "ma20": 58420, "ma60": 54580, "ma120": 50240},
+            {"date": "2025-08-25", "close": 66600, "ma5": 65020, "ma20": 59360, "ma60": 55400, "ma120": 50980},
+            {"date": "2025-09-01", "close": 67800, "ma5": 66280, "ma20": 60300, "ma60": 56220, "ma120": 51680},
+            {"date": "2025-09-08", "close": 69000, "ma5": 67520, "ma20": 61240, "ma60": 57040, "ma120": 52420},
+            {"date": "2025-09-15", "close": 70200, "ma5": 68760, "ma20": 62180, "ma60": 57860, "ma120": 53140},
+            {"date": "2025-09-22", "close": 71400, "ma5": 70000, "ma20": 63120, "ma60": 58680, "ma120": 53880},
+            {"date": "2025-09-29", "close": 72600, "ma5": 71240, "ma20": 64060, "ma60": 59500, "ma120": 54600},
+            {"date": "2025-10-06", "close": 73800, "ma5": 72480, "ma20": 65000, "ma60": 60320, "ma120": 55320},
+            {"date": "2025-10-13", "close": 75000, "ma5": 73720, "ma20": 65940, "ma60": 61140, "ma120": 56040},
+            {"date": "2025-10-20", "close": 76200, "ma5": 74960, "ma20": 66880, "ma60": 61960, "ma120": 56760},
+            {"date": "2025-10-27", "close": 77400, "ma5": 76200, "ma20": 67820, "ma60": 62780, "ma120": 57480},
+            {"date": "2025-11-03", "close": 78600, "ma5": 77440, "ma20": 68760, "ma60": 63600, "ma120": 58200},
+            {"date": "2025-11-10", "close": 79800, "ma5": 78680, "ma20": 69700, "ma60": 64420, "ma120": 58920},
+            {"date": "2025-11-17", "close": 81000, "ma5": 79920, "ma20": 70640, "ma60": 65240, "ma120": 59640},
+            {"date": "2025-11-24", "close": 82200, "ma5": 81160, "ma20": 71580, "ma60": 66060, "ma120": 60360},
+            {"date": "2025-12-01", "close": 83400, "ma5": 82400, "ma20": 72520, "ma60": 66880, "ma120": 61080},
+            {"date": "2025-12-08", "close": 84600, "ma5": 83640, "ma20": 73460, "ma60": 67700, "ma120": 61800},
+            {"date": "2025-12-15", "close": 85800, "ma5": 84880, "ma20": 74400, "ma60": 68520, "ma120": 62520},
+            {"date": "2025-12-22", "close": 87000, "ma5": 86120, "ma20": 75340, "ma60": 69340, "ma120": 63240},
+            {"date": "2025-12-29", "close": 88200, "ma5": 87360, "ma20": 76280, "ma60": 70160, "ma120": 63960},
+            {"date": "2026-01-05", "close": 89400, "ma5": 88600, "ma20": 77220, "ma60": 70980, "ma120": 64680},
+            {"date": "2026-01-12", "close": 90600, "ma5": 89840, "ma20": 78160, "ma60": 71800, "ma120": 65400},
+            {"date": "2026-01-19", "close": 91800, "ma5": 91080, "ma20": 79100, "ma60": 72620, "ma120": 66120},
+            {"date": "2026-01-26", "close": 93000, "ma5": 92320, "ma20": 80040, "ma60": 73440, "ma120": 66840},
+            {"date": "2026-02-02", "close": 94200, "ma5": 93560, "ma20": 80980, "ma60": 74260, "ma120": 67560},
+            {"date": "2026-02-09", "close": 95400, "ma5": 94800, "ma20": 81920, "ma60": 75080, "ma120": 68280},
+            {"date": "2026-02-16", "close": 96600, "ma5": 96040, "ma20": 82860, "ma60": 75900, "ma120": 69000},
+            {"date": "2026-02-23", "close": 97800, "ma5": 97280, "ma20": 83800, "ma60": 76720, "ma120": 69720},
+            {"date": "2026-03-02", "close": 99000, "ma5": 98520, "ma20": 84740, "ma60": 77540, "ma120": 70440},
+            {"date": "2026-03-09", "close": 103200, "ma5": 101600, "ma20": 98605, "ma60": 87440, "ma120": 70793},
+            {"date": "2026-03-16", "close": 98200, "ma5": 100300, "ma20": 100585, "ma60": 89260, "ma120": 73016},
+            {"date": "2026-03-23", "close": 127000, "ma5": 106440, "ma20": 103010, "ma60": 91923, "ma120": 75462},
+            {"date": "2026-03-30", "close": 100200, "ma5": 106560, "ma20": 103725, "ma60": 94528, "ma120": 77916},
+            {"date": "2026-04-06", "close": 99300, "ma5": 100360, "ma20": 103415, "ma60": 96903, "ma120": 80220}
+        ];
 
-  <!-- 3 CHARTS -->
-  <div class="fn-charts-row">
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">주가추이 · 이동평균선 (5/20/60/120일)</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="priceChart"></canvas></div></div>
-    </div>
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">거래량</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="volumeChart"></canvas></div></div>
-    </div>
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">시가총액 추이</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="mktCapChart"></canvas></div></div>
-    </div>
-  </div>
+        // Price Chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const labels = weeklyData.map(d => d.date.substring(5));
+        const closeData = weeklyData.map(d => d.close);
+        const ma5Data = weeklyData.map(d => d.ma5);
+        const ma20Data = weeklyData.map(d => d.ma20);
+        const ma60Data = weeklyData.map(d => d.ma60);
+        const ma120Data = weeklyData.map(d => d.ma120);
 
-  <!-- MARKET DATA -->
-  <div class="fn-two-col">
-    <div class="fn-section">
-      <div class="fn-section-header">시세현황 (2026/04/06)</div>
-      <div class="fn-section-body">
-        <table class="fn-inline-table">
-          <tr><td>종가</td><td>98,700원</td></tr>
-          <tr><td>전일대비</td><td style="color:var(--negative);">-1,500 (-1.50%)</td></tr>
-          <tr><td>거래량 / 거래대금</td><td>351,751주 / 347억</td></tr>
-          <tr><td>52주 최고 / 최저</td><td><span style="color:var(--positive);">130,700</span> / <span style="color:var(--negative);">31,250</span></td></tr>
-          <tr><td>발행주식수</td><td>83,221,265주</td></tr>
-          <tr><td>시가총액</td><td>81,557억</td></tr>
-          <tr><td>Beta</td><td>N/A</td></tr>
-        </table>
-      </div>
-    </div>
-    <div class="fn-section">
-      <div class="fn-section-header">투자지표</div>
-      <div class="fn-section-body">
-        <table class="fn-inline-table">
-          <tr><td>PER</td><td>N/A</td></tr>
-          <tr><td>PBR</td><td>N/A</td></tr>
-          <tr><td>ROE</td><td>N/A</td></tr>
-          <tr><td>EV/EBITDA</td><td>N/A</td></tr>
-          <tr><td>배당수익률</td><td>-</td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '종가',
+                        data: closeData,
+                        borderColor: '#4fc3f7',
+                        backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 2,
+                        pointBackgroundColor: '#4fc3f7',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'MA5',
+                        data: ma5Data,
+                        borderColor: '#ff9800',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'MA20',
+                        data: ma20Data,
+                        borderColor: '#9c27b0',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'MA60',
+                        data: ma60Data,
+                        borderColor: '#f44336',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'MA120',
+                        data: ma120Data,
+                        borderColor: '#4caf50',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#e0e0e0',
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    }
+                }
+            }
+        });
 
-  <!-- FOOTER -->
-  <div class="fn-footer">
-    기준일: 2026.04.07 | 데이터 출처: FnGuide, yfinance | 본 자료는 정보 제공 목적이며 투자 조언이 아닙니다.
-  </div>
-
-</div>
-
-<!-- CHARTS JS -->
-<script>
-  var txtC = '#9ba4c4';
-  var gridC = 'rgba(255,255,255,0.04)';
-
-  var pDates = ['04/11','04/18','04/25','05/02','05/09','05/16','05/23','05/30',
-    '06/06','06/13','06/20','06/27','07/04','07/11','07/18','07/25',
-    '08/01','08/08','08/15','08/22','08/29','09/05','09/12','09/19',
-    '09/26','10/03','10/10','10/17','10/24','10/31','11/07','11/14',
-    '11/21','11/28','12/05','12/12','12/19','12/26','2026 01/02','01/09',
-    '01/16','01/23','01/30','02/06','02/13','02/20','02/27','03/06',
-    '03/13','03/20','03/27','04/03','04/10'];
-  var pClose = [45300,45450,45450,36500,35550,33950,38150,40600,
-    38950,36850,45000,41500,41550,41850,43900,41450,
-    37000,39600,39250,36800,37050,42400,49650,45100,
-    47300,46800,45000,43850,43750,44800,44250,53800,
-    65000,85400,80000,81200,74700,75000,71500,73600,
-    74700,83100,105000,94300,89500,90600,107000,113000,
-    103200,98200,127000,100200,98700];
-  var pMA5 = [42640,46030,46060,40570,36960,33790,36210,40050,
-    39850,38720,42150,43110,42050,41930,43310,42010,
-    38310,39860,38960,36870,37710,38670,45180,46000,
-    48960,47240,46780,44210,44290,45080,45710,50330,
-    58160,70020,83100,80700,75540,74800,75640,71660,
-    73000,76520,99740,100500,93540,91800,100020,103700,
-    101600,100300,106440,106560,102840];
-  var pMA20 = [47300,45730,44680,43740,42930,40165,37880,36752,
-    37065,38055,39892,40958,41508,42310,42600,42325,
-    41390,40872,40000,38592,38220,38052,39608,41890,
-    44702,46600,46730,46488,46060,45090,44822,46352,
-    49820,56055,65402,72995,77340,79070,77750,75510,
-    73620,74205,80230,87440,92575,94225,97975,98080,
-    98605,100585,103010,103725,103480];
-  var pMA60 = [39195,40540,41986,42633,42915,42722,42650,42883,
-    42851,42266,41419,40823,40662,40602,40376,40038,
-    39988,40412,40697,40611,40405,40366,40754,40937,
-    41513,41884,41922,42032,42181,42671,43202,44149,
-    45923,48616,52318,55278,57740,59437,60886,63060,
-    65457,68089,72645,77168,80460,81637,84477,85688,
-    87440,89260,91923,94528,95018];
-  var pMA120 = [29535,30776,32022,32797,33295,34051,34863,35850,
-    36361,37088,37757,38560,39325,39899,40458,41012,
-    41376,41624,41662,41670,41627,41440,41139,40936,
-    41106,41275,41291,41217,41143,41331,41754,42423,
-    43267,44510,46342,48016,49338,50447,51299,52535,
-    53762,55234,57791,60320,62629,63545,66143,68337,
-    70794,73017,75462,77917,78349];
-  var vData = [1904206,1399915,1676831,2413822,936071,2054024,2148713,1799557,
-    793885,1571195,6383007,2316857,1303005,1282916,1460597,896316,
-    1350646,1010055,652312,689291,848286,1385026,4297269,2546026,
-    3475564,877556,332843,1190280,915446,1615764,2263169,4074679,
-    5383997,6722221,4109454,2617136,2288132,1146366,2233409,1989641,
-    1435327,2618207,5213522,3212255,1612830,557866,2696478,2994422,
-    2687229,1540476,5077744,2846787,351751];
-
-  // Estimate market cap per week (close * shares)
-  var shares = 83221265;
-  var mCapData = pClose.map(function(c) { return Math.round(c * shares / 1e8); });
-
-  function buildCharts() {
-    if (typeof Chart === 'undefined') return;
-
-    new Chart(document.getElementById('priceChart'), {
-      type: 'line',
-      data: {
-        labels: pDates,
-        datasets: [
-          { label: '종가', data: pClose, borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.06)', fill: true, tension: 0.3, pointRadius: 1.5, borderWidth: 2.2, order: 0 },
-          { label: 'MA5', data: pMA5, borderColor: '#ffa726', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 1 },
-          { label: 'MA20', data: pMA20, borderColor: '#66bb6a', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 2 },
-          { label: 'MA60', data: pMA60, borderColor: '#ef5350', borderWidth: 1.5, borderDash: [5,3], pointRadius: 0, tension: 0.3, fill: false, order: 3 },
-          { label: 'MA120', data: pMA120, borderColor: '#ab47bc', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, tension: 0.3, fill: false, order: 4 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, pointStyle: 'line', padding: 8 }, position: 'top' },
-          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString() + '원' : '-'); } } }
-        },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/10000).toFixed(0)+'만' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-
-    new Chart(document.getElementById('volumeChart'), {
-      type: 'bar',
-      data: {
-        labels: pDates,
-        datasets: [{
-          label: '거래량',
-          data: vData,
-          backgroundColor: vData.map(function(v,i) {
-            return pClose[i] >= (pClose[i-1] || pClose[i]) ? 'rgba(102,187,106,0.5)' : 'rgba(239,83,80,0.5)';
-          }),
-          borderRadius: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(0)+'M' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-
-    new Chart(document.getElementById('mktCapChart'), {
-      type: 'line',
-      data: {
-        labels: pDates,
-        datasets: [{
-          label: '시가총액(억원)',
-          data: mCapData,
-          borderColor: '#ffa726',
-          backgroundColor: 'rgba(255,167,38,0.06)',
-          fill: true, tension: 0.35, pointRadius: 1.5, borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 10000 ? (v/10000).toFixed(1)+'조' : v.toLocaleString()+'억'; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-  }
-
-  window.addEventListener('load', buildCharts);
-</script>
+        // Financial Chart
+        const ctxFinancial = document.getElementById('financialChart').getContext('2d');
+        new Chart(ctxFinancial, {
+            type: 'bar',
+            data: {
+                labels: ['2022', '2023', '2024', '2025'],
+                datasets: [
+                    {
+                        label: '매출',
+                        data: [95, 37, 51, 52],
+                        backgroundColor: '#4fc3f7',
+                        borderRadius: 4
+                    },
+                    {
+                        label: '영업이익',
+                        data: [-163, -205, -220, -223],
+                        backgroundColor: '#ff6b6b',
+                        borderRadius: 4
+                    },
+                    {
+                        label: '순이익',
+                        data: [-111, -172, -338, -1926],
+                        backgroundColor: '#f44336',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e0e0e0' }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

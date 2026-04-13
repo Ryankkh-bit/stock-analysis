@@ -1,341 +1,981 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>알멕(354320) - FnGuide 기업분석</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
-      --surface: #1e2746; --surface2: #253256; --surface3: #2a3a66;
-      --border: #2d3f6e; --border-light: #3a5199;
-      --text: #e8eaf6; --text2: #9ba4c4; --text3: #6b7aa1;
-      --accent: #4fc3f7; --accent2: #29b6f6; --accent-dark: #0288d1;
-      --positive: #66bb6a; --negative: #ef5350; --warning: #ffa726;
-      --header-bg: #0d1b3e; --row-hover: rgba(79,195,247,0.06);
-      --row-stripe: rgba(255,255,255,0.02);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .page-wrap { max-width: 1600px; margin: 0 auto; padding: 12px; }
-    .fn-header { background: linear-gradient(135deg, var(--header-bg), var(--bg2)); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .fn-header-left { flex: 1; }
-    .fn-company-name { font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
-    .fn-company-name .code { font-size: 13px; color: var(--accent); font-weight: 400; }
-    .fn-company-name .badge { font-size: 11px; padding: 2px 8px; border-radius: 3px; background: var(--accent-dark); color: #fff; font-weight: 500; }
-    .fn-company-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
-    .fn-company-sub span { margin-right: 12px; }
-    .fn-header-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; min-width: 420px; }
-    .fn-kpi { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 5px; padding: 10px 14px; text-align: center; }
-    .fn-kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .fn-kpi-value { font-size: 18px; font-weight: 700; color: #fff; }
-    .fn-kpi-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
-    .fn-price-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-    .fn-price { font-size: 28px; font-weight: 700; }
-    .fn-price-change { font-size: 15px; font-weight: 600; }
-    .fn-price-change.down { color: var(--negative); }
-    .fn-price-change.up { color: var(--positive); }
-    .fn-price-meta { display: flex; gap: 20px; font-size: 12px; color: var(--text2); }
-    .fn-price-meta span strong { color: var(--text); }
-    .fn-section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
-    .fn-section-header { background: var(--header-bg); padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-    .fn-section-body { padding: 16px; }
-    .fn-charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
-    .fn-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .fn-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
-    .fn-chart-body { padding: 10px; }
-    .fn-chart-container { position: relative; width: 100%; height: 380px; }
-    .fn-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .fn-table th { background: var(--header-bg); color: var(--text2); padding: 7px 10px; text-align: center; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; white-space: nowrap; }
-    .fn-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .fn-table td:first-child { text-align: left; font-weight: 500; color: var(--text2); }
-    .fn-table tr:hover td { background: var(--row-hover); }
-    .fn-table tr:nth-child(even) td { background: var(--row-stripe); }
-    .fn-table .neg { color: var(--negative); }
-    .fn-table .pos { color: var(--positive); }
-    .fn-fin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .fn-fin-chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .fn-fin-chart-title { background: var(--header-bg); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); }
-    .fn-fin-chart-body { padding: 10px; }
-    .fn-fin-chart-container { position: relative; width: 100%; height: 260px; }
-    .fn-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .fn-inline-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .fn-inline-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .fn-inline-table td:first-child { color: var(--text2); width: 45%; }
-    .fn-inline-table td:last-child { text-align: right; font-weight: 500; }
-    .fn-holder-bar { display: flex; height: 18px; border-radius: 3px; overflow: hidden; margin: 8px 0; font-size: 0; }
-    .fn-holder-bar > div { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 500; }
-    .fn-footer { text-align: center; padding: 16px; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 10px; }
-    .fn-table-scroll { overflow-x: auto; }
-    .fn-table-scroll .fn-table th:first-child, .fn-table-scroll .fn-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
-    .fn-table-scroll .fn-table th:first-child { background: var(--header-bg); }
-    @media (max-width: 1200px) {
-      .fn-charts-row { grid-template-columns: 1fr; }
-      .fn-chart-container { height: 300px; }
-      .fn-header { flex-direction: column; gap: 12px; }
-      .fn-header-kpis { min-width: unset; }
-      .fn-two-col { grid-template-columns: 1fr; }
-      .fn-fin-row { grid-template-columns: 1fr; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알멕(354320.KQ) - 주식분석</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #1a1a2e;
+            --surface: #1e2746;
+            --surface2: #252d47;
+            --accent: #4fc3f7;
+            --text: #e4e4e7;
+            --text-dim: #a1a1a6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --border: #3a3a52;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .header-info h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .price-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .price-box {
+            padding: 15px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .price-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .price-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .price-value.green { color: var(--green); }
+        .price-value.red { color: var(--red); }
+
+        .change-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .change-badge.up {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--green);
+        }
+
+        .change-badge.down {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .chart-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Tables */
+        .table-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--accent);
+        }
+
+        th:first-child {
+            text-align: left;
+        }
+
+        td {
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        tbody tr:hover {
+            background-color: var(--surface2);
+        }
+
+        .positive { color: var(--green); }
+        .negative { color: var(--red); }
+
+        /* Grid Sections */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .grid-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .grid-item-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-dim);
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        /* SWOT Grid */
+        .swot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .swot-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .swot-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .swot-box.strength .swot-title { color: var(--green); border-color: var(--green); }
+        .swot-box.weakness .swot-title { color: var(--yellow); border-color: var(--yellow); }
+        .swot-box.opportunity .swot-title { color: var(--accent); border-color: var(--accent); }
+        .swot-box.threat .swot-title { color: var(--red); border-color: var(--red); }
+
+        .swot-content {
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .swot-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .swot-content li {
+            padding: 5px 0;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .swot-content li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* Investment Section */
+        .investment-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .investment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .investment-item {
+            padding: 15px;
+            background: var(--surface2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .investment-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .investment-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .investment-note {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-dim);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+            }
+
+            .price-section {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .swot-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="page-wrap">
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-info">
+                    <h1>🚀 알멕(ALMAC)</h1>
+                    <p>티커: 354320 (KOSDAQ)</p>
+                    <p>업종: 알루미늄 압출 / 전기차 부품 / 우주항공 소재</p>
+                </div>
+            </div>
+            
+            <div class="price-section">
+                <div class="price-box">
+                    <div class="price-label">현재가</div>
+                    <div class="price-value green">80,000원</div>
+                    <div class="change-badge up">상한가 근접</div>
+                </div>
+                <div class="price-box">
+                    <div class="price-label">전일종가</div>
+                    <div class="price-value">69,500원</div>
+                    <div class="change-badge up">+10,500 (+15.11%)</div>
+                </div>
+                <div class="price-box">
+                    <div class="price-label">시가총액</div>
+                    <div class="price-value">5,113억원</div>
+                </div>
+                <div class="price-box">
+                    <div class="price-label">52주 범위</div>
+                    <div class="price-value">18,900원 ~ 81,500원</div>
+                </div>
+            </div>
+        </div>
 
-  <!-- HEADER -->
-  <div class="fn-header">
-    <div class="fn-header-left">
-      <div class="fn-company-name">
-        알멕
-        <span class="code">A354320</span>
-        <span class="badge">KOSDAQ</span>
-      </div>
-      <div class="fn-company-sub">
-        <span>업종: 비금속·소재</span>
-        <span>결산: 12월</span>
-        <span>설립: 2004년</span>
-        <span><a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?gicode=A354320" target="_blank">FnGuide 원본</a></span>
-      </div>
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">거래량</div>
+                <div class="kpi-value">344,905</div>
+                <div class="kpi-subtext">평균: 231,972</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">MA50</div>
+                <div class="kpi-value">57,309원</div>
+                <div class="kpi-subtext">상향 추세</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">MA200</div>
+                <div class="kpi-value">32,145원</div>
+                <div class="kpi-subtext">장기 상승</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">RSI(14)</div>
+                <div class="kpi-value" style="color: var(--red);">82.82</div>
+                <div class="kpi-subtext">과매수</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Bollinger Band</div>
+                <div class="kpi-value">상단 돌파</div>
+                <div class="kpi-subtext">35,484 ~ 72,431</div>
+            </div>
+        </div>
+
+        <!-- Price Chart -->
+        <div class="chart-section">
+            <div class="section-title">📈 가격추이 (1년 주간 데이터)</div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--accent);"></div>
+                    <span>종가</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8b5cf6;"></div>
+                    <span>MA5</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f59e0b;"></div>
+                    <span>MA20</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #10b981;"></div>
+                    <span>MA60</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #6366f1;"></div>
+                    <span>MA120</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 시세정보 -->
+        <div class="table-section">
+            <div class="section-title">📊 시세정보</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>수치</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>현재가</td>
+                        <td class="positive">80,000원</td>
+                    </tr>
+                    <tr>
+                        <td>전일종가</td>
+                        <td>69,500원</td>
+                    </tr>
+                    <tr>
+                        <td>등락률</td>
+                        <td class="positive">+15.11%</td>
+                    </tr>
+                    <tr>
+                        <td>거래량</td>
+                        <td>344,905주</td>
+                    </tr>
+                    <tr>
+                        <td>거래량(평균)</td>
+                        <td>231,972주</td>
+                    </tr>
+                    <tr>
+                        <td>52주 고가</td>
+                        <td>81,500원</td>
+                    </tr>
+                    <tr>
+                        <td>52주 저가</td>
+                        <td>18,900원</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 기술적지표 -->
+        <div class="table-section">
+            <div class="section-title">📈 기술적지표</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>지표</th>
+                        <th>수치</th>
+                        <th>평가</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RSI(14)</td>
+                        <td>82.82</td>
+                        <td class="negative">과매수</td>
+                    </tr>
+                    <tr>
+                        <td>MA50</td>
+                        <td>57,309원</td>
+                        <td class="positive">상향 추세</td>
+                    </tr>
+                    <tr>
+                        <td>MA200</td>
+                        <td>32,145원</td>
+                        <td class="positive">장기 상승</td>
+                    </tr>
+                    <tr>
+                        <td>Bollinger Band</td>
+                        <td>35,484 ~ 72,431</td>
+                        <td class="positive">상단 돌파</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 투자의견·목표주가 -->
+        <div class="investment-section">
+            <div class="section-title">💡 투자의견·목표주가</div>
+            <div class="investment-grid">
+                <div class="investment-item">
+                    <div class="investment-label">애널리스트 커버리지</div>
+                    <div class="investment-value" style="color: var(--yellow);">없음</div>
+                    <div class="investment-note">아직 주요 증권사 커버리지 미제공</div>
+                </div>
+                <div class="investment-item">
+                    <div class="investment-label">목표주가</div>
+                    <div class="investment-value" style="color: var(--red);">미제시</div>
+                    <div class="investment-note">현재 분석 데이터 제한</div>
+                </div>
+            </div>
+            <div style="background: var(--surface2); padding: 15px; border-radius: 8px; font-size: 13px; color: var(--text-dim); line-height: 1.7;">
+                <strong>평가:</strong> 알멕은 수주잔고 1.1조원과 우주항공 신사업 가시화로 향후 성장성 기대가 높음. 다만 높은 부채비율(103%)과 순이익 적자 지속, RSI 82 수준의 과매수 구간 진입으로 단기 조정 가능성도 존재. 중장기 투자자 관점에서 우주항공 부문 실적 기여도 모니터링 필요.
+            </div>
+        </div>
+
+        <!-- 연간재무실적 -->
+        <div class="table-section">
+            <div class="section-title">💰 연간재무실적 (단위: 억원)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>2022</th>
+                        <th>2023</th>
+                        <th>2024</th>
+                        <th>2025</th>
+                        <th>2026E</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>매출액</td>
+                        <td>1,568</td>
+                        <td>2,160</td>
+                        <td>1,569</td>
+                        <td>1,878</td>
+                        <td>2,324~2,410</td>
+                    </tr>
+                    <tr>
+                        <td>영업이익</td>
+                        <td>113</td>
+                        <td>159</td>
+                        <td class="negative">-27</td>
+                        <td>62</td>
+                        <td class="positive">168~178</td>
+                    </tr>
+                    <tr>
+                        <td>순이익</td>
+                        <td>55</td>
+                        <td class="negative">-68</td>
+                        <td>7</td>
+                        <td class="negative">-13</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>총이익</td>
+                        <td>347</td>
+                        <td>369</td>
+                        <td>208</td>
+                        <td>249</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="background: var(--surface2); padding: 15px; border-radius: 8px; font-size: 12px; color: var(--text-dim); margin-top: 15px; line-height: 1.6;">
+                <strong>주요 내용:</strong>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li>2023년 대비 2024년 매출 27% 하락, 영업이익 약 -27억원 (구조 조정/시장 둔화)</li>
+                    <li>2025년 부분 회복 (매출 1,878억원, 영업이익 62억원)</li>
+                    <li>2026E 회복 본격화: 매출 2,324~2,410억원, 영업이익 168~178억원 예상 (키움증권 추정)</li>
+                    <li>미국 앨라배마 공장 본격 가동, 우주항공 매출 확대 주요 성장 드라이버</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 재무상태 -->
+        <div class="grid-2col">
+            <div class="grid-item">
+                <div class="grid-item-title">재무상태 (2025)</div>
+                <div class="info-row">
+                    <span class="info-label">총자산</span>
+                    <span class="info-value">3,428억원</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">순자산(자본)</span>
+                    <span class="info-value">1,504억원</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">총부채</span>
+                    <span class="info-value">1,816억원</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">부채비율</span>
+                    <span class="info-value" style="color: var(--red);">약 103%</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">현금</span>
+                    <span class="info-value">228억원</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">유리채무</span>
+                    <span class="info-value">1,549억원</span>
+                </div>
+            </div>
+
+            <div class="grid-item">
+                <div class="grid-item-title">재무상태 평가</div>
+                <div style="font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+                    <p style="margin-bottom: 10px;"><strong style="color: var(--text);">강점:</strong> 총자산 3,428억원으로 안정적 규모 유지. 자본금 기반 1,504억원으로 핵심 사업 지속 가능.</p>
+                    <p style="margin-bottom: 10px;"><strong style="color: var(--text);">위험요소:</strong> 부채비율 103%는 높은 수준. 총부채 1,816억원이 자본을 초과하는 구조로 재무 레버리지 리스크 존재.</p>
+                    <p><strong style="color: var(--text);">관심지표:</strong> 2026년 실적 회복과 현금 창출로 부채 감소 추세 모니터링 필수. 미국 공장 추가 투자 시 자금 조달 방식 중요.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 현금흐름 -->
+        <div class="grid-item" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+            <div class="grid-item-title">현금흐름 분석</div>
+            <div style="font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+                <p style="margin-bottom: 12px;"><strong style="color: var(--text);">영업활동 현금흐름:</strong> 2023~2025 적자 기조에서 2026년 개선 예상. 우주항공 매출 본격화 시 현금 창출 능력 향상 기대.</p>
+                <p style="margin-bottom: 12px;"><strong style="color: var(--text);">투자활동 현금흐름:</strong> 미국 앨라배마 공장 600억원 투자(2026년 설비 가동 완료)로 향후 2년간 높은 자본지출 지속 가능.</p>
+                <p style="margin-bottom: 12px;"><strong style="color: var(--text);">재무활동 현금흐름:</strong> 현금 228억원으로 단기 유동성 충분. 향후 차입 재조정 및 부채 감축 추이 관찰 필요.</p>
+                <p><strong style="color: var(--text);">종합평가:</strong> 현금 유동성은 양호하나 부채 규모 관리와 2026년 실적 회복이 핵심. 우주항공 부문 매출 실현 시 현금 효율성 대폭 개선 시나리오.</p>
+            </div>
+        </div>
+
+        <!-- 사업구조 -->
+        <div class="table-section">
+            <div class="section-title">🏢 사업구조</div>
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--accent);">핵심 사업 부문</h3>
+                <div style="display: grid; gap: 12px;">
+                    <div style="padding: 12px; background: var(--surface2); border-radius: 6px; border-left: 3px solid var(--accent);">
+                        <div style="font-weight: 500; margin-bottom: 4px;">알루미늄 압출 (메인 비즈니스)</div>
+                        <div style="font-size: 12px; color: var(--text-dim);">전기차 배터리 모듈케이스·팩 프레임 및 우주항공 소재 제조</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--surface2); border-radius: 6px; border-left: 3px solid var(--green);">
+                        <div style="font-weight: 500; margin-bottom: 4px;">주요 고객</div>
+                        <div style="font-size: 12px; color: var(--text-dim);">LG에너지솔루션(폭스바겐, 아우디, 포르쉐, 재규어랜드로버 등 글로벌 OEM)</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--surface2); border-radius: 6px; border-left: 3px solid var(--accent);">
+                        <div style="font-weight: 500; margin-bottom: 4px;">미국 진출</div>
+                        <div style="font-size: 12px; color: var(--text-dim);">앨라배마 공장 600억원 투자, 2026년까지 설비 가동 예정</div>
+                    </div>
+                    <div style="padding: 12px; background: var(--surface2); border-radius: 6px; border-left: 3px solid var(--green);">
+                        <div style="font-weight: 500; margin-bottom: 4px;">신사업 기회</div>
+                        <div style="font-size: 12px; color: var(--text-dim);">우주항공 소재 공급 확대(2026년 주가 240%+ 급등 요인), 전도체 신사업 매출 본격화</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--accent);">주요 경영지표</h3>
+                <div style="display: grid; gap: 12px;">
+                    <div style="padding: 12px; background: var(--surface2); border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: 500;">수주잔고(2025 3Q)</span>
+                            <span class="positive" style="font-weight: bold;">약 1조 1,000억원</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">향후 3년 매출 기반 형성, 우주항공 매출 기여도 증가 예상</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SWOT Analysis -->
+        <div style="margin-bottom: 30px;">
+            <div class="section-title">⚔️ SWOT 분석</div>
+            <div class="swot-grid">
+                <div class="swot-box strength">
+                    <div class="swot-title">Strengths (강점)</div>
+                    <div class="swot-content">
+                        <ul>
+                            <li>알루미늄 압출 원천기술 보유</li>
+                            <li>글로벌 완성차 OEM 직간접 공급(VW/Audi/Porsche/JLR)</li>
+                            <li>수주잔고 1.1조원으로 향후 실적 가시성 높음</li>
+                            <li>우주항공 신사업 가시화</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="swot-box weakness">
+                    <div class="swot-title">Weaknesses (약점)</div>
+                    <div class="swot-content">
+                        <ul>
+                            <li>높은 부채비율(103%)</li>
+                            <li>전기차 시장 둔화 시 실적 영향 가능</li>
+                            <li>순이익 적자 지속(2023~2025)</li>
+                            <li>자본 대비 부채 초과 구조</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="swot-box opportunity">
+                    <div class="swot-title">Opportunities (기회)</div>
+                    <div class="swot-content">
+                        <ul>
+                            <li>우주항공 소재 수요 급증</li>
+                            <li>전도체 신사업 매출 기여</li>
+                            <li>미국 앨라배마 공장 본격 가동</li>
+                            <li>전기차 시장 장기 성장</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="swot-box threat">
+                    <div class="swot-title">Threats (위협)</div>
+                    <div class="swot-content">
+                        <ul>
+                            <li>알루미늄 원재료 가격 변동</li>
+                            <li>전기차 보조금 축소 리스크</li>
+                            <li>미국 관세 리스크</li>
+                            <li>경기둔화 시 자동차 수요 감소</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Judgment -->
+        <div class="grid-item" style="background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%); border: 2px solid var(--accent); margin-bottom: 30px;">
+            <div class="grid-item-title" style="color: var(--accent);">💼 투자판단</div>
+            <div style="font-size: 13px; color: var(--text); line-height: 1.8;">
+                <p style="margin-bottom: 15px;"><strong style="color: var(--accent);">긍정 요인:</strong></p>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li>수주잔고 1.1조원으로 향후 3년 실적 안정성 확보</li>
+                    <li>우주항공 소재 신사업 가시화로 2026년부터 본격 기여 기대</li>
+                    <li>미국 앨라배마 공장 완성으로 글로벌 공급능력 확대</li>
+                    <li>2026E 영업이익 168~178억원(추정) 회복으로 실적 개선 기대</li>
+                    <li>현재 주가 수준이 우주항공 신사업 가치를 반영하지 못한 상황</li>
+                </ul>
+
+                <p style="margin-bottom: 15px;"><strong style="color: var(--accent);">부정 요인:</strong></p>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li>RSI 82 수준의 과매수 구간 진입으로 단기 조정 가능성</li>
+                    <li>부채비율 103%로 재무레버리지 리스크 상존</li>
+                    <li>순이익 적자 지속(2023~2025) - 이익의 질 개선 필요</li>
+                    <li>전기차 시장 둔화 리스크 및 알루미늄 원재료 가격 변동성</li>
+                    <li>애널리스트 커버리지 부재로 정보 비대칭 가능</li>
+                </ul>
+
+                <p style="padding: 15px; background: var(--surface); border-radius: 6px; border-left: 3px solid var(--accent);"><strong style="color: var(--accent);">종합평가:</strong> 중장기 성장성 높음(우주항공+전도체 신사업), 다만 단기 조정 가능성과 재무 구조 개선 필요. 투자자별로 투자 기간과 리스크 허용도에 따라 진입 시점 신중히 검토 필요. 우주항공 부문 실적 기여도, 부채 감축 추이, 2026년 매출 달성도를 핵심 모니터링 지표로 설정.</p>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            <strong>⚠️ 면책조항:</strong><br>
+            본 분석은 투자 참고용 정보제공 목적으로 작성되었으며, 투자 권유·권유 또는 특정 종목 추천이 아닙니다. 
+            제시된 정보는 공개 자료 기반이며 정확성을 보장하지 않습니다. 
+            본 자료에서 제시한 재무 수치, 기술적 분석, 투자의견은 작성 시점 기준이며 변경될 수 있습니다. 
+            개인의 투자 결정은 본인의 투자 목표, 기간, 위험 허용도를 고려하여 충분한 조사와 판단 후 진행하시기 바랍니다. 
+            과거 성과는 미래 수익을 보장하지 않으며, 투자에 따른 손실 책임은 투자자에게 있습니다.
+        </div>
+
+        <div class="footer">
+            <p>알멕(354320.KQ) 기업분석 · 작성일: 2026-04-13</p>
+            <p>Data source: KOSDAQ, FnGuide | Design: Dark Mode Analysis Report</p>
+        </div>
     </div>
-    <div class="fn-header-kpis">
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">PER</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">산출불가</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">업종 PER</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
-        <div class="fn-kpi-sub">비금속·소재</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">PBR</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">순자산 대비</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">ROE</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">최근 연간</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">EV/EBITDA</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">N/A</div>
-        <div class="fn-kpi-sub">기업가치</div>
-      </div>
-      <div class="fn-kpi">
-        <div class="fn-kpi-label">배당수익률</div>
-        <div class="fn-kpi-value" style="color:var(--text3);">-</div>
-        <div class="fn-kpi-sub">무배당</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- PRICE BAR -->
-  <div class="fn-price-bar">
-    <div class="fn-price">55,000</div>
-    <div class="fn-price-change down">▼ 2,600 (-4.51%)</div>
-    <div class="fn-price-meta">
-      <span>거래량 <strong>198,493</strong></span>
-      <span>거래대금 <strong>109억</strong></span>
-      <span>시가총액 <strong>3,624억</strong></span>
-      <span>52주 <strong style="color:var(--positive);">75,300</strong> / <strong style="color:var(--negative);">18,900</strong></span>
-      <span>Beta <strong>N/A</strong></span>
-    </div>
-  </div>
+    <script>
+        // Chart.js - Price Chart with Moving Averages
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        
+        const chartData = {
+            labels: ["04/18", "04/25", "05/02", "05/09", "05/16", "05/23", "05/30", "06/05", "06/13", "06/20", "06/27", "07/04", "07/11", "07/18", "07/25", "08/01", "08/08", "08/14", "08/22", "08/29", "09/05", "09/12", "09/19", "09/26", "10/02", "10/10", "10/17", "10/24", "10/31", "11/07", "11/14", "11/21", "11/28", "12/05", "12/12", "12/19", "12/26", "01/02", "01/09", "01/16", "01/23", "01/30", "02/06", "02/13", "02/20", "02/27", "03/06", "03/13", "03/20", "03/27", "04/03", "04/10"],
+            datasets: [
+                {
+                    label: '종가',
+                    data: [23400, 23900, 24600, 24050, 25150, 23650, 25000, 24000, 24500, 23500, 23100, 23800, 23750, 24400, 23950, 22950, 23750, 23850, 23200, 22950, 22700, 22650, 22650, 21200, 20950, 20400, 22400, 22700, 21600, 19790, 20350, 19100, 19640, 20200, 20100, 19630, 20150, 20200, 36900, 44050, 48000, 61900, 64100, 69800, 63100, 51500, 53700, 61000, 47200, 46450, 57600, 69500],
+                    borderColor: 'var(--accent)',
+                    backgroundColor: 'rgba(79, 195, 247, 0.05)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: 'var(--accent)'
+                },
+                {
+                    label: 'MA5',
+                    data: [null, null, null, null, 24220.0, 24270.0, 24490.0, 24370.0, 24460.0, 24130.0, 24020.0, 23780.0, 23730.0, 23710.0, 23800.0, 23770.0, 23760.0, 23780.0, 23540.0, 23340.0, 23290.0, 23070.0, 22830.0, 22430.0, 22030.0, 21570.0, 21520.0, 21530.0, 21610.0, 21378.0, 21368.0, 20708.0, 20096.0, 19816.0, 19878.0, 19734.0, 19944.0, 20056.0, 23396.0, 28186.0, 33860.0, 42210.0, 50990.0, 57570.0, 61380.0, 62080.0, 60440.0, 59820.0, 55300.0, 51970.0, 53190.0, 56350.0],
+                    borderColor: '#8b5cf6',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                },
+                {
+                    label: 'MA20',
+                    data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 23872.5, 23837.5, 23775.0, 23677.5, 23535.0, 23325.0, 23162.5, 23032.5, 22967.5, 22822.5, 22637.0, 22499.5, 22264.5, 22059.0, 21849.0, 21656.5, 21490.5, 21310.5, 21128.0, 21813.0, 22868.0, 24133.0, 26095.5, 28168.0, 30598.0, 32705.5, 34260.5, 35825.5, 37740.5, 39020.5, 40353.5, 42216.0, 44736.0],
+                    borderColor: '#f59e0b',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                },
+                {
+                    label: 'MA60',
+                    data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                    borderColor: '#10b981',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                },
+                {
+                    label: 'MA120',
+                    data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+                    borderColor: '#6366f1',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                }
+            ]
+        };
 
-  <!-- 3 CHARTS -->
-  <div class="fn-charts-row">
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">주가추이 · 이동평균선 (5/20/60/120일)</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="priceChart"></canvas></div></div>
-    </div>
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">거래량</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="volumeChart"></canvas></div></div>
-    </div>
-    <div class="fn-chart-box">
-      <div class="fn-chart-title">시가총액 추이</div>
-      <div class="fn-chart-body"><div class="fn-chart-container"><canvas id="mktCapChart"></canvas></div></div>
-    </div>
-  </div>
-
-  <!-- MARKET DATA -->
-  <div class="fn-two-col">
-    <div class="fn-section">
-      <div class="fn-section-header">시세현황 (2026/04/06)</div>
-      <div class="fn-section-body">
-        <table class="fn-inline-table">
-          <tr><td>종가</td><td>55,000원</td></tr>
-          <tr><td>전일대비</td><td style="color:var(--negative);">-2,600 (-4.51%)</td></tr>
-          <tr><td>거래량 / 거래대금</td><td>198,493주 / 109억</td></tr>
-          <tr><td>52주 최고 / 최저</td><td><span style="color:var(--positive);">75,300</span> / <span style="color:var(--negative);">18,900</span></td></tr>
-          <tr><td>발행주식수</td><td>6,391,381주</td></tr>
-          <tr><td>시가총액</td><td>3,624억</td></tr>
-          <tr><td>Beta</td><td>N/A</td></tr>
-        </table>
-      </div>
-    </div>
-    <div class="fn-section">
-      <div class="fn-section-header">투자지표</div>
-      <div class="fn-section-body">
-        <table class="fn-inline-table">
-          <tr><td>PER</td><td>N/A</td></tr>
-          <tr><td>PBR</td><td>N/A</td></tr>
-          <tr><td>ROE</td><td>N/A</td></tr>
-          <tr><td>EV/EBITDA</td><td>N/A</td></tr>
-          <tr><td>배당수익률</td><td>-</td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="fn-footer">
-    기준일: 2026.04.07 | 데이터 출처: FnGuide, yfinance | 본 자료는 정보 제공 목적이며 투자 조언이 아닙니다.
-  </div>
-
-</div>
-
-<!-- CHARTS JS -->
-<script>
-  var txtC = '#9ba4c4';
-  var gridC = 'rgba(255,255,255,0.04)';
-
-  var pDates = ['04/11','04/18','04/25','05/02','05/09','05/16','05/23','05/30',
-    '06/06','06/13','06/20','06/27','07/04','07/11','07/18','07/25',
-    '08/01','08/08','08/15','08/22','08/29','09/05','09/12','09/19',
-    '09/26','10/03','10/10','10/17','10/24','10/31','11/07','11/14',
-    '11/21','11/28','12/05','12/12','12/19','12/26','2026 01/02','01/09',
-    '01/16','01/23','01/30','02/06','02/13','02/20','02/27','03/06',
-    '03/13','03/20','03/27','04/03','04/10'];
-  var pClose = [22600,23400,23900,24600,24050,25150,23650,25000,
-    24000,24500,23500,23100,23800,23750,24400,23950,
-    22950,23750,23850,23200,22950,22700,22650,22650,
-    21200,20950,20400,22400,22700,21600,19790,20350,
-    19100,19640,20200,20100,19630,20150,20200,36900,
-    44050,48000,61900,64100,69800,63100,51500,53700,
-    61000,47200,46450,57600,55000];
-  var pMA5 = [22120,23170,23630,24010,24570,25330,24610,24650,
-    24600,24550,23380,23570,23210,23600,24030,24080,
-    23900,23570,23980,23200,23150,22530,22570,22640,
-    21910,20980,20820,21530,22330,22550,20478,20540,
-    19368,19324,20160,20190,19904,20030,20134,26510,
-    40650,44700,57220,63960,69220,67280,56440,51340,
-    57800,51030,46550,52830,54150];
-  var pMA20 = [25485,24072,23222,23235,23515,24192,24560,24790,
-    24738,24618,24220,24025,23678,23440,23602,23730,
-    23902,23895,23915,23672,23435,23215,22862,22722,
-    22412,22100,21985,21725,21648,21808,21722,21474,
-    20734,19928,19848,19760,19894,20072,20110,21682,
-    26805,32998,42270,51632,58775,60898,62950,60860,
-    59110,54732,51680,52052,52388];
-  var pMA60 = [26536,26408,26296,26258,26202,25918,25671,25446,
-    25227,24709,24256,23968,23904,24028,24099,24137,
-    24106,23984,23928,23818,23689,23529,23445,23361,
-    23264,23088,23032,22834,22681,22552,22307,22021,
-    21701,21382,21185,20987,20759,20628,20586,21062,
-    22610,24442,27406,31058,35135,36635,39737,41819,
-    44956,47532,49751,52472,53048];
-  var pMA120 = [26833,26449,26138,25928,25825,25774,25717,25619,
-    25594,25641,25630,25527,25397,25282,25253,25216,
-    25177,24987,24875,24705,24502,24161,23891,23684,
-    23585,23537,23520,23458,23408,23348,23157,22974,
-    22760,22536,22357,22216,22060,21967,21881,21999,
-    22684,23548,24946,26618,28512,29202,30587,31547,
-    33012,34197,35204,36523,36807];
-  var vData = [171259,90078,60838,128029,58135,115498,88778,561852,
-    132118,121799,92829,78375,87139,50293,55353,91541,
-    132069,42144,34301,39449,31401,35050,32869,43585,
-    65966,32246,10512,83128,91544,82018,104780,55052,
-    48523,33218,34469,23659,26885,60551,25314,6298765,
-    1640235,1041186,679553,1251890,1157709,468000,1103084,1204668,
-    1484871,1180803,808890,1292926,198493];
-
-  // Estimate market cap per week (close * shares)
-  var shares = 6391381;
-  var mCapData = pClose.map(function(c) { return Math.round(c * shares / 1e8); });
-
-  function buildCharts() {
-    if (typeof Chart === 'undefined') return;
-
-    new Chart(document.getElementById('priceChart'), {
-      type: 'line',
-      data: {
-        labels: pDates,
-        datasets: [
-          { label: '종가', data: pClose, borderColor: '#4fc3f7', backgroundColor: 'rgba(79,195,247,0.06)', fill: true, tension: 0.3, pointRadius: 1.5, borderWidth: 2.2, order: 0 },
-          { label: 'MA5', data: pMA5, borderColor: '#ffa726', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 1 },
-          { label: 'MA20', data: pMA20, borderColor: '#66bb6a', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, order: 2 },
-          { label: 'MA60', data: pMA60, borderColor: '#ef5350', borderWidth: 1.5, borderDash: [5,3], pointRadius: 0, tension: 0.3, fill: false, order: 3 },
-          { label: 'MA120', data: pMA120, borderColor: '#ab47bc', borderWidth: 1.5, borderDash: [8,4], pointRadius: 0, tension: 0.3, fill: false, order: 4 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: txtC, font: { size: 10 }, usePointStyle: true, pointStyle: 'line', padding: 8 }, position: 'top' },
-          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (ctx.parsed.y ? ctx.parsed.y.toLocaleString() + '원' : '-'); } } }
-        },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/10000).toFixed(0)+'만' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-
-    new Chart(document.getElementById('volumeChart'), {
-      type: 'bar',
-      data: {
-        labels: pDates,
-        datasets: [{
-          label: '거래량',
-          data: vData,
-          backgroundColor: vData.map(function(v,i) {
-            return pClose[i] >= (pClose[i-1] || pClose[i]) ? 'rgba(102,187,106,0.5)' : 'rgba(239,83,80,0.5)';
-          }),
-          borderRadius: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(0)+'M' : v; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-
-    new Chart(document.getElementById('mktCapChart'), {
-      type: 'line',
-      data: {
-        labels: pDates,
-        datasets: [{
-          label: '시가총액(억원)',
-          data: mCapData,
-          borderColor: '#ffa726',
-          backgroundColor: 'rgba(255,167,38,0.06)',
-          fill: true, tension: 0.35, pointRadius: 1.5, borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: txtC, font: { size: 10 }, padding: 8 } } },
-        scales: {
-          y: { ticks: { color: txtC, font: { size: 10 }, callback: function(v) { return v >= 10000 ? (v/10000).toFixed(1)+'조' : v.toLocaleString()+'억'; } }, grid: { color: gridC }, border: { color: 'transparent' } },
-          x: { ticks: { color: txtC, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 14 }, grid: { color: gridC }, border: { color: 'transparent' } }
-        }
-      }
-    });
-  }
-
-  window.addEventListener('load', buildCharts);
-</script>
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 39, 70, 0.8)',
+                        borderColor: 'var(--accent)',
+                        borderWidth: 1,
+                        titleColor: 'var(--accent)',
+                        bodyColor: 'var(--text)',
+                        padding: 12,
+                        cornerRadius: 6
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(58, 58, 82, 0.3)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'var(--text-dim)',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'var(--text-dim)',
+                            font: {
+                                size: 10
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
