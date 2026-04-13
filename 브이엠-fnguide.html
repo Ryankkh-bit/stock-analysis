@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>브이엠(089970) - 기업분석</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+    --bg: #1a1a2e;
+    --surface: #1e2746;
+    --surface2: #243055;
+    --accent: #4fc3f7;
+    --accent2: #81d4fa;
+    --text: #e0e0e0;
+    --text-dim: #9e9e9e;
+    --green: #4caf50;
+    --red: #ef5350;
+    --yellow: #ffd54f;
+    --border: #2a3a5c;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; padding:16px; max-width:1400px; margin:0 auto; }
+.header { background:var(--surface); border-radius:12px; padding:24px; margin-bottom:16px; border:1px solid var(--border); }
+.header h1 { font-size:28px; color:#fff; margin-bottom:4px; }
+.header .subtitle { color:var(--text-dim); font-size:14px; }
+.price-area { display:flex; align-items:baseline; gap:12px; margin-top:12px; }
+.price-area .price { font-size:36px; font-weight:700; color:#fff; }
+.price-area .change { font-size:18px; padding:4px 10px; border-radius:6px; }
+.change.up { background:rgba(76,175,80,0.2); color:var(--green); }
+.change.down { background:rgba(239,83,80,0.2); color:var(--red); }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.grid-full { grid-column:1/-1; }
+.card { background:var(--surface); border-radius:12px; padding:20px; border:1px solid var(--border); }
+.card h2 { font-size:16px; color:var(--accent); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.kpi { text-align:center; }
+.kpi .label { font-size:11px; color:var(--text-dim); margin-bottom:4px; }
+.kpi .value { font-size:18px; font-weight:600; color:#fff; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:right; padding:8px 12px; background:var(--surface2); color:var(--accent); font-weight:500; }
+th:first-child { text-align:left; }
+td { text-align:right; padding:8px 12px; border-bottom:1px solid var(--border); }
+td:first-child { text-align:left; color:var(--text-dim); }
+.positive { color:var(--green); }
+.negative { color:var(--red); }
+.chart-container { width:100%; height:400px; position:relative; }
+.analyst-box { display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+.target-price { font-size:28px; font-weight:700; color:var(--accent); }
+.analyst-detail { font-size:13px; color:var(--text-dim); }
+.badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+.badge-buy { background:rgba(76,175,80,0.2); color:var(--green); }
+.section-title { font-size:20px; color:#fff; margin:24px 0 12px; }
+.swot-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.swot-item { padding:16px; border-radius:8px; }
+.swot-item h3 { font-size:14px; margin-bottom:8px; }
+.swot-s { background:rgba(76,175,80,0.1); border:1px solid rgba(76,175,80,0.3); }
+.swot-s h3 { color:var(--green); }
+.swot-w { background:rgba(239,83,80,0.1); border:1px solid rgba(239,83,80,0.3); }
+.swot-w h3 { color:var(--red); }
+.swot-o { background:rgba(33,150,243,0.1); border:1px solid rgba(33,150,243,0.3); }
+.swot-o h3 { color:#42a5f5; }
+.swot-t { background:rgba(255,213,79,0.1); border:1px solid rgba(255,213,79,0.3); }
+.swot-t h3 { color:var(--yellow); }
+.swot-item ul { list-style:none; padding:0; font-size:13px; line-height:1.8; }
+.swot-item li::before { content:"• "; color:inherit; }
+.footer { text-align:center; color:var(--text-dim); font-size:11px; margin-top:24px; padding:16px; }
+@media (max-width:768px) {
+    .grid { grid-template-columns:1fr; }
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .swot-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <div class="subtitle">KOSDAQ 089970 | 반도체 장비 | Semiconductor Equipment & Materials</div>
+    <h1>🔬 브이엠 (VM Inc.)</h1>
+    <div class="price-area">
+        <span class="price">47,900원</span>
+        <span class="change up">+1,900 (+4.13%)</span>
+        <span style="color:var(--text-dim);font-size:13px;">2026.04.13 기준</span>
+    </div>
+</div>
+
+<!-- KPI -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>📊 핵심 투자지표 (KPI)</h2>
+    <div class="kpi-grid">
+        <div class="kpi"><div class="label">시가총액</div><div class="value">1.15조</div></div>
+        <div class="kpi"><div class="label">Forward PER</div><div class="value">13.4x</div></div>
+        <div class="kpi"><div class="label">ROE</div><div class="value">28.9%</div></div>
+        <div class="kpi"><div class="label">부채비율</div><div class="value">0.21%</div></div>
+        <div class="kpi"><div class="label">매출성장률</div><div class="value positive">+54.2%</div></div>
+        <div class="kpi"><div class="label">영업이익률</div><div class="value">18.3%</div></div>
+        <div class="kpi"><div class="label">순이익률</div><div class="value">28.1%</div></div>
+        <div class="kpi"><div class="label">유동비율</div><div class="value">769%</div></div>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="card grid-full" style="margin-bottom:16px;">
+    <h2>📈 주가 차트 (1년, 주간)</h2>
+    <div class="chart-container">
+        <canvas id="priceChart"></canvas>
+    </div>
+</div>
+
+<div class="grid">
+<!-- 52주 시세 -->
+<div class="card">
+    <h2>💹 시세 정보</h2>
+    <table>
+        <tr><td>현재가</td><td>47,900원</td></tr>
+        <tr><td>전일대비</td><td class="positive">+1,900 (+4.13%)</td></tr>
+        <tr><td>52주 최고</td><td>51,100원</td></tr>
+        <tr><td>52주 최저</td><td>10,300원</td></tr>
+        <tr><td>거래량</td><td>90,629주</td></tr>
+        <tr><td>평균거래량</td><td>668,493주</td></tr>
+        <tr><td>MA50</td><td>38,728원</td></tr>
+        <tr><td>MA200</td><td>24,189원</td></tr>
+    </table>
+</div>
+
+<!-- 기술적 지표 -->
+<div class="card">
+    <h2>📐 기술적 지표</h2>
+    <table>
+        <tr><td>RSI(14)</td><td>51.85</td></tr>
+        <tr><td>볼린저 상단</td><td>50,112원</td></tr>
+        <tr><td>볼린저 중간</td><td>43,808원</td></tr>
+        <tr><td>볼린저 하단</td><td>37,503원</td></tr>
+        <tr><td>MA5</td><td>42,410원</td></tr>
+        <tr><td>MA20</td><td>43,413원</td></tr>
+        <tr><td>MA60</td><td>36,333원</td></tr>
+        <tr><td>MA120</td><td>31,250원</td></tr>
+    </table>
+</div>
+</div>
+
+<!-- 투자의견·목표주가 -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>🎯 투자의견 · 목표주가</h2>
+    <div class="analyst-box">
+        <div>
+            <div style="color:var(--text-dim);font-size:12px;">컨센서스 목표가</div>
+            <div class="target-price">58,000원</div>
+            <div class="analyst-detail">현재가 대비 <span class="positive">+21.1% 상승여력</span></div>
+        </div>
+        <div>
+            <div class="badge badge-buy">Strong Buy</div>
+            <div class="analyst-detail" style="margin-top:8px;">
+                애널리스트 2명 | Buy 2<br>
+                목표가 범위: 44,000원 ~ 72,000원
+            </div>
+        </div>
+        <div style="flex:1;">
+            <table style="font-size:12px;">
+                <tr><th style="text-align:left;">증권사</th><th>목표가</th><th>의견</th></tr>
+                <tr><td>흥국증권</td><td>40,000원</td><td><span class="badge badge-buy">매수</span></td></tr>
+                <tr><td>하나증권</td><td>39,000원</td><td><span class="badge badge-buy">매수</span></td></tr>
+                <tr><td>다올투자증권</td><td>43,000원</td><td><span class="badge badge-buy">매수</span></td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 연간 재무 데이터 -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>📋 연간 재무실적 (단위: 억원)</h2>
+    <table>
+        <thead>
+            <tr><th style="text-align:left;">항목</th><th>2022</th><th>2023</th><th>2024</th><th>2025</th><th>2026E</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>매출액</td><td>1,414</td><td>260</td><td>703</td><td>1,444</td><td>2,137~4,208</td></tr>
+            <tr><td>영업이익</td><td>309</td><td class="negative">-110</td><td class="negative">-86</td><td>247</td><td>526~647</td></tr>
+            <tr><td>당기순이익</td><td>279</td><td class="negative">-70</td><td class="negative">-35</td><td>261</td><td>-</td></tr>
+            <tr><td>영업이익률</td><td>21.9%</td><td class="negative">-42.2%</td><td class="negative">-12.2%</td><td>17.1%</td><td>~24.6%</td></tr>
+            <tr><td>순이익률</td><td>19.7%</td><td class="negative">-26.8%</td><td class="negative">-4.9%</td><td>18.1%</td><td>-</td></tr>
+            <tr><td>ROE</td><td>23.6%</td><td class="negative">-5.7%</td><td class="negative">-2.8%</td><td>14.7%</td><td>-</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 재무차트 -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>📊 재무실적 추이 차트</h2>
+    <div class="chart-container" style="height:300px;">
+        <canvas id="financialChart"></canvas>
+    </div>
+</div>
+
+<!-- 재무상태 -->
+<div class="grid">
+<div class="card">
+    <h2>🏦 재무상태 (2025.12)</h2>
+    <table>
+        <tr><td>총자산</td><td>2,487억</td></tr>
+        <tr><td>총부채</td><td>715억</td></tr>
+        <tr><td>자기자본</td><td>1,772억</td></tr>
+        <tr><td>현금성자산</td><td>1,305억</td></tr>
+        <tr><td>총차입금</td><td>4억</td></tr>
+        <tr><td>부채비율</td><td>40.4%</td></tr>
+        <tr><td>유동비율</td><td>769%</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>💰 현금흐름 (2025.12, 억원)</h2>
+    <table>
+        <tr><td>영업활동CF</td><td class="positive">183</td></tr>
+        <tr><td>투자활동CF</td><td class="negative">-45</td></tr>
+        <tr><td>잉여현금흐름(FCF)</td><td class="positive">93</td></tr>
+        <tr><td>EBITDA</td><td class="positive">304</td></tr>
+    </table>
+</div>
+</div>
+
+<!-- 사업구조 -->
+<div class="card" style="margin:16px 0;">
+    <h2>🏭 사업 구조</h2>
+    <p style="font-size:14px;line-height:1.8;color:var(--text);">
+        브이엠(구 에이피티씨, 2024년 3월 사명 변경)은 2002년 설립된 <b style="color:var(--accent);">반도체 건식 식각장비(Dry Etcher)</b> 전문 기업입니다. 
+        경기도 이천에 본사를 두고 있으며, SK하이닉스에 300mm 웨이퍼용 폴리(Poly), 메탈(Metal), 옥사이드(Oxide) 식각장비를 납품합니다.
+    </p>
+    <p style="font-size:14px;line-height:1.8;color:var(--text);margin-top:12px;">
+        <b style="color:#fff;">주요 제품:</b> Poly Etcher (주력), Metal Etcher, Oxide Etcher (신규 양산 검증 중)<br>
+        <b style="color:#fff;">주요 고객:</b> SK하이닉스 (매출의 대부분)<br>
+        <b style="color:#fff;">기술 경쟁력:</b> 독자 플라즈마 소스 원천기술 보유, CVD/ALD/ALE 장비 개발 확대 중<br>
+        <b style="color:#fff;">시장 위치:</b> SK하이닉스 내 유일한 국산 식각장비 공급사
+    </p>
+    <p style="font-size:14px;line-height:1.8;color:var(--text);margin-top:12px;">
+        2026년 SK하이닉스 전공정 투자 확대에 따라 대규모 수주가 이어지고 있습니다. 
+        2026년 1월 783억, 2월 462억, 3월 815억 등 누적 수주잔고가 빠르게 증가하며 연간 매출 2,100~4,200억원 달성이 기대됩니다.
+    </p>
+</div>
+
+<!-- SWOT -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>🔍 SWOT 분석</h2>
+    <div class="swot-grid">
+        <div class="swot-item swot-s">
+            <h3>S (강점)</h3>
+            <ul>
+                <li>SK하이닉스 내 유일한 국산 식각장비 공급사</li>
+                <li>독자 플라즈마 소스 원천기술 보유</li>
+                <li>Poly/Metal/Oxide 3대 에처 풀라인업 구축</li>
+                <li>현금 1,305억 보유, 거의 무차입 경영</li>
+            </ul>
+        </div>
+        <div class="swot-item swot-w">
+            <h3>W (약점)</h3>
+            <ul>
+                <li>SK하이닉스 단일 고객 의존도 극도로 높음</li>
+                <li>글로벌 식각장비 시장 대비 작은 규모</li>
+                <li>2023~2024년 업황 부진 시 대규모 적자 경험</li>
+                <li>부품 재고 과다 보유 시 유동성 리스크</li>
+            </ul>
+        </div>
+        <div class="swot-item swot-o">
+            <h3>O (기회)</h3>
+            <ul>
+                <li>SK하이닉스 HBM/NAND 전공정 투자 슈퍼사이클</li>
+                <li>반도체 장비 국산화 정책 수혜</li>
+                <li>Oxide Etcher 신규 양산 → 매출 다변화</li>
+                <li>ALD/ALE 차세대 장비 개발로 성장동력 확보</li>
+            </ul>
+        </div>
+        <div class="swot-item swot-t">
+            <h3>T (위협)</h3>
+            <ul>
+                <li>Lam Research, TEL 등 글로벌 장비사 경쟁</li>
+                <li>SK하이닉스 설비투자 축소 시 매출 급감 가능</li>
+                <li>미중 반도체 갈등에 따른 공급망 불확실성</li>
+                <li>반도체 업황 사이클 변동성</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 투자 판단 -->
+<div class="card" style="margin-bottom:16px;">
+    <h2>⚖️ 투자 판단 요약</h2>
+    <table>
+        <tr><td style="width:120px;color:var(--accent);">투자의견</td><td><span class="badge badge-buy">Strong Buy</span> (애널리스트 컨센서스)</td></tr>
+        <tr><td style="color:var(--accent);">목표가 평균</td><td>58,000원 (현재가 대비 +21.1%)</td></tr>
+        <tr><td style="color:var(--accent);">핵심 투자포인트</td><td>SK하이닉스 전공정 투자 슈퍼사이클 직접 수혜주. 2025년 흑자전환 성공 후 2026년 사상 최대 실적 전망. Forward PER 13.4배로 성장 대비 밸류에이션 매력적.</td></tr>
+        <tr><td style="color:var(--accent);">주요 리스크</td><td>SK하이닉스 단일 고객 의존, 반도체 업황 사이클 민감도, 글로벌 장비사 대비 기술 격차</td></tr>
+        <tr><td style="color:var(--accent);">기술적 위치</td><td>52주 고가(51,100원) 근접. RSI 51.85로 중립 구간. 모든 이동평균선 위에 위치하여 강세 추세 유지.</td></tr>
+    </table>
+</div>
+
+<div class="footer">
+    본 자료는 투자 참고용이며 투자 판단의 최종 책임은 투자자 본인에게 있습니다.<br>
+    데이터 소스: Yahoo Finance (yfinance) | 생성일: 2026.04.13
+</div>
+
+<script>
+const labels = ["04-18", "04-25", "05-02", "05-09", "05-16", "05-23", "05-30", "06-05", "06-13", "06-20", "06-27", "07-04", "07-11", "07-18", "07-25", "08-01", "08-08", "08-14", "08-22", "08-29", "09-05", "09-12", "09-19", "09-26", "10-02", "10-10", "10-17", "10-24", "10-31", "11-07", "11-14", "11-21", "11-28", "12-05", "12-12", "12-19", "12-26", "01-02", "01-09", "01-16", "01-23", "01-30", "02-06", "02-13", "02-20", "02-27", "03-06", "03-13", "03-20", "03-27", "04-03", "04-10", "04-13"];
+const prices = [10720, 12720, 11900, 11500, 12220, 12200, 12130, 12630, 12330, 12130, 12650, 12290, 10640, 11130, 10890, 10760, 11160, 11490, 10530, 12290, 13830, 14740, 18100, 16870, 19970, 19950, 21350, 23500, 24100, 24550, 25450, 23300, 25000, 26600, 28950, 28700, 29200, 30500, 27100, 26700, 24650, 30050, 27250, 34050, 35300, 41600, 43400, 38700, 47650, 44700, 41450, 46000, 47900];
+const volumes = [169606, 642877, 348630, 449590, 1029749, 388264, 641462, 188529, 350091, 750122, 323250, 429916, 660137, 461497, 447152, 1983864, 282270, 408655, 231021, 603898, 1386163, 1069734, 4331666, 4596394, 2794847, 1075715, 4891876, 2694957, 3004356, 2624748, 1894725, 3304799, 1869234, 2581397, 3312976, 2305892, 1673148, 1508877, 2862103, 2240918, 4741300, 4827962, 3849450, 4368493, 896457, 4675458, 3113728, 2161399, 2974119, 2426147, 2231505, 2004992, 90629];
+const ma5 = [10940.0, 11486.0, 12250.0, 11466.0, 12072.0, 12712.0, 12750.0, 12460.0, 12504.0, 12276.0, 12366.0, 12274.0, 11146.0, 11090.0, 10788.0, 11046.0, 10726.0, 11432.0, 10706.0, 11466.0, 13278.0, 14022.0, 16276.0, 17466.0, 17952.0, 18568.0, 21410.0, 22830.0, 24870.0, 24260.0, 25740.0, 24680.0, 24050.0, 25770.0, 29050.0, 27850.0, 28680.0, 29200.0, 29920.0, 27210.0, 25980.0, 28540.0, 28240.0, 33160.0, 34450.0, 40180.0, 39130.0, 39900.0, 44680.0, 45790.0, 40770.0, 42410.0, 42410];
+const ma20 = [11003.5, 11030.5, 11189.0, 11347.0, 11625.0, 12120.0, 12250.0, 12377.0, 12593.0, 12491.5, 12401.5, 12355.0, 12015.5, 11719.0, 11324.5, 11017.5, 10912.5, 10996.5, 10964.0, 11062.5, 11720.5, 12368.0, 13760.5, 15260.5, 16277.0, 16583.0, 18430.0, 20068.5, 21919.5, 23342.5, 24425.0, 24887.5, 24682.5, 25060.0, 25887.5, 26680.0, 27652.5, 28407.5, 29012.5, 28780.0, 28077.5, 27912.5, 27492.5, 28980.0, 29692.5, 33335.0, 35210.0, 37925.0, 40657.5, 42375.0, 42785.0, 43412.5, 43413];
+const ma60 = [9539.166666666666, 9839.333333333334, 10168.666666666666, 10353.166666666666, 10677.666666666666, 10956.666666666666, 11241.166666666666, 11387.666666666666, 11650.666666666666, 11813.333333333334, 11895.666666666666, 11987.5, 12039.333333333334, 12051.833333333334, 11993.666666666666, 11916.5, 11840.333333333334, 11763.5, 11605.833333333334, 11509.5, 11569.0, 11711.166666666666, 12045.666666666666, 12472.333333333334, 12911.0, 13063.333333333334, 13931.5, 14931.0, 16080.833333333334, 17215.333333333332, 18407.666666666668, 19572.166666666668, 20620.833333333332, 21661.833333333332, 22914.166666666668, 23878.666666666668, 24616.0, 25236.166666666668, 26063.333333333332, 26492.5, 26685.833333333332, 27008.333333333332, 27291.666666666668, 27911.666666666668, 28254.166666666668, 29626.666666666668, 30510.833333333332, 31503.333333333332, 32902.5, 34327.5, 35225.833333333336, 36333.333333333336, 36333];
+const ma120 = [8380.833333333334, 8513.583333333334, 8637.666666666666, 8695.833333333334, 8864.5, 9113.583333333334, 9366.25, 9522.416666666666, 9796.166666666666, 10021.5, 10243.75, 10465.75, 10625.083333333334, 10795.5, 10916.5, 11075.333333333334, 11197.333333333334, 11275.583333333334, 11339.5, 11421.666666666666, 11587.75, 11751.25, 11960.083333333334, 12215.0, 12481.416666666666, 12554.333333333334, 12988.25, 13477.583333333334, 14003.416666666666, 14532.916666666666, 15085.583333333334, 15589.0, 16065.166666666666, 16615.416666666668, 17312.666666666668, 17962.166666666668, 18508.0, 18944.333333333332, 19737.416666666668, 20403.916666666668, 21035.75, 21770.333333333332, 22493.583333333332, 23404.416666666668, 23806.75, 25017.833333333332, 25876.583333333332, 26961.916666666668, 28200.416666666668, 29376.166666666668, 30345.583333333332, 31249.583333333332, 31250];
+
+// Price chart
+const ctx = document.getElementById('priceChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: '종가',
+                data: prices,
+                borderColor: '#4fc3f7',
+                backgroundColor: 'rgba(79,195,247,0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1,
+                order: 0
+            },
+            {
+                label: 'MA5',
+                data: ma5,
+                borderColor: '#ff9800',
+                borderWidth: 1,
+                pointRadius: 0,
+                borderDash: [],
+                tension: 0.3,
+                order: 1
+            },
+            {
+                label: 'MA20',
+                data: ma20,
+                borderColor: '#e91e63',
+                borderWidth: 1,
+                pointRadius: 0,
+                tension: 0.3,
+                order: 2
+            },
+            {
+                label: 'MA60',
+                data: ma60,
+                borderColor: '#4caf50',
+                borderWidth: 1,
+                pointRadius: 0,
+                tension: 0.3,
+                order: 3
+            },
+            {
+                label: 'MA120',
+                data: ma120,
+                borderColor: '#9c27b0',
+                borderWidth: 1,
+                pointRadius: 0,
+                tension: 0.3,
+                order: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { labels: { color: '#9e9e9e', font: { size: 11 } } },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + (context.parsed.y ? context.parsed.y.toLocaleString() + '원' : '-');
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { ticks: { color: '#9e9e9e', maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { 
+                ticks: { 
+                    color: '#9e9e9e',
+                    callback: function(v) { return v.toLocaleString(); }
+                }, 
+                grid: { color: 'rgba(255,255,255,0.05)' } 
+            }
+        }
+    }
+});
+
+// Financial chart
+const finCtx = document.getElementById('financialChart').getContext('2d');
+new Chart(finCtx, {
+    type: 'bar',
+    data: {
+        labels: ['2022', '2023', '2024', '2025', '2026E'],
+        datasets: [
+            {
+                label: '매출액',
+                data: [1414, 260, 703, 1444, 2137],
+                backgroundColor: 'rgba(79,195,247,0.7)',
+                borderRadius: 4,
+                order: 1
+            },
+            {
+                label: '영업이익',
+                data: [309, -110, -86, 247, 526],
+                backgroundColor: function(context) {
+                    return context.raw >= 0 ? 'rgba(76,175,80,0.7)' : 'rgba(239,83,80,0.7)';
+                },
+                borderRadius: 4,
+                order: 2
+            },
+            {
+                label: '영업이익률(%)',
+                data: [21.9, -42.2, -12.2, 17.1, 24.6],
+                type: 'line',
+                borderColor: '#ffd54f',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: '#ffd54f',
+                yAxisID: 'y1',
+                order: 0
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9e9e9e', font: { size: 11 } } } },
+        scales: {
+            x: { ticks: { color: '#9e9e9e' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { 
+                ticks: { color: '#9e9e9e', callback: function(v) { return v.toLocaleString() + '억'; } }, 
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                title: { display: true, text: '억원', color: '#9e9e9e' }
+            },
+            y1: {
+                position: 'right',
+                ticks: { color: '#ffd54f', callback: function(v) { return v + '%'; } },
+                grid: { display: false },
+                title: { display: true, text: '영업이익률', color: '#ffd54f' }
+            }
+        }
+    }
+});
+</script>
+</body>
+</html>
